@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:odp/pages/bkdetails.dart';
+import 'package:odp/pages/movie_booking_details.dart';
 
 class BookingsPage extends StatefulWidget {
   const BookingsPage({super.key});
@@ -35,7 +34,7 @@ class _BookingsPageState extends State<BookingsPage>
 
   Stream<List<DocumentSnapshot>> _fetchBookings() {
     return FirebaseFirestore.instance
-        .collection('bookings')
+        .collection('movie_bookings')
         .where('userId', isEqualTo: _currentUserId)
         .snapshots()
         .map((snapshot) => snapshot.docs);
@@ -110,7 +109,7 @@ class _BookingsPageState extends State<BookingsPage>
 
       try {
         var bookingRef =
-            FirebaseFirestore.instance.collection('bookings').doc(bookID);
+            FirebaseFirestore.instance.collection('movie_bookings').doc(bookID);
         await bookingRef.delete();
         print('Booking with ID: $bookID has been deleted successfully');
       } catch (e) {
@@ -122,7 +121,7 @@ class _BookingsPageState extends State<BookingsPage>
     if (deletionSuccessful) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Selected bookings have been deleted successfully')),
+            content: Text('Selected movie bookings have been deleted successfully from history')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +144,7 @@ class _BookingsPageState extends State<BookingsPage>
             child: AnimatedSwitcher(
               duration: Duration(milliseconds: 300),
               child: CircularProgressIndicator(
-                color: Colors.teal,
+                color: Colors.red,
                 strokeWidth: 3,
               ),
             ),
@@ -154,7 +153,7 @@ class _BookingsPageState extends State<BookingsPage>
         if (snapshot.hasError) {
           return Center(
             child: Text('Error fetching bookings',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: Colors.red.shade800, fontWeight: FontWeight.bold)),
           );
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -246,19 +245,19 @@ class _BookingsPageState extends State<BookingsPage>
                       curve: Curves.easeInOut,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.teal.shade50
+                            ? Colors.red.shade50
                             : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.teal.withOpacity(0.07),
+                            color: Colors.red.withOpacity(0.07),
                             blurRadius: 10,
                             offset: Offset(0, 4),
                           ),
                         ],
                         border: Border.all(
                           color: isSelected
-                              ? Colors.teal
+                              ? Colors.red
                               : Colors.transparent,
                           width: 1.2,
                         ),
@@ -273,11 +272,11 @@ class _BookingsPageState extends State<BookingsPage>
                               children: [
                                 Expanded(
                                   child: Text(
-                                    bookingData['turfName'] ?? 'No Turf Name',
+                                    bookingData['movieTitle'] ?? 'No Movie Title',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      color: Colors.teal,
+                                      color: Colors.red,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -285,16 +284,30 @@ class _BookingsPageState extends State<BookingsPage>
                                 ),
                                 const SizedBox(width: 8),
                                 StatusBadge(
-                                    status: bookingData['status'] ?? 'Confirmed'),
+                                    status: bookingData['status'] ?? 'confirmed'),
                               ],
                             ),
                             const SizedBox(height: 10),
                             Row(
                               children: [
-                                Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+                                Icon(Icons.movie, size: 14, color: Colors.grey[600]),
                                 const SizedBox(width: 6),
                                 Text(
-                                  bookingData['bookingDate'] ?? 'No Booking Date',
+                                  '${bookingData['showDate'] ?? 'No Date'} at ${bookingData['showTime'] ?? 'No Time'}',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Icon(Icons.event_seat, size: 14, color: Colors.grey[600]),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Seats: ${(bookingData['selectedSeats'] as List?)?.join(', ') ?? 'No Seats'}',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.black87,
@@ -308,57 +321,24 @@ class _BookingsPageState extends State<BookingsPage>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // --- Provider Column ---
+                                // --- Theatre Name Column ---
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Text(
-                                      'Provider',
+                                      'Theatre',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    FutureBuilder<DocumentSnapshot>(
-                                      future: (() async {
-                                        // 1. Get turfId from bookingData
-                                        final turfId = bookingData['turfId'];
-                                        if (turfId == null) {
-                                          // Return an empty DocumentSnapshot with exists == false
-                                          return FirebaseFirestore.instance.collection('users').doc('dummy').get();
-                                        }
-                                        // 2. Get turf document
-                                        final turfDoc = await FirebaseFirestore.instance.collection('turfs').doc(turfId).get();
-                                        if (!turfDoc.exists) {
-                                          return FirebaseFirestore.instance.collection('users').doc('dummy').get();
-                                        }
-                                        final turfData = turfDoc.data() as Map<String, dynamic>;
-                                        final ownerId = turfData['ownerId'];
-                                        if (ownerId == null) {
-                                          return FirebaseFirestore.instance.collection('users').doc('dummy').get();
-                                        }
-                                        // 3. Get owner document
-                                        final ownerDoc = await FirebaseFirestore.instance.collection('users').doc(ownerId).get();
-                                        return ownerDoc;
-                                      })(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState == ConnectionState.waiting) {
-                                          return Text('Loading...', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey));
-                                        }
-                                        if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
-                                          return Text('No Provider', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.red));
-                                        }
-                                        final ownerData = snapshot.data!.data() as Map<String, dynamic>?;
-                                        final ownerName = ownerData?['name'] ?? 'No Provider';
-                                        return Text(
-                                          ownerName,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        );
-                                      },
+                                    Text(
+                                      bookingData['theatreName'] ?? 'No Theatre',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -375,8 +355,8 @@ class _BookingsPageState extends State<BookingsPage>
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      bookingData['amount'] != null
-                                          ? '₹${(bookingData['amount'] as num).toStringAsFixed(2)}'
+                                      bookingData['totalAmount'] != null
+                                          ? '₹${(bookingData['totalAmount'] as num).toStringAsFixed(2)}'
                                           : 'No Price',
                                       style: const TextStyle(
                                         fontSize: 13,
@@ -402,7 +382,7 @@ class _BookingsPageState extends State<BookingsPage>
                               icon: const Icon(Icons.info_outline, size: 16),
                               label: const Text('Details'),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.teal.shade700,
+                                foregroundColor: Colors.red.shade600,
                                 minimumSize: const Size(double.infinity, 36),
                                 textStyle: const TextStyle(
                                   fontSize: 13,
@@ -449,7 +429,7 @@ class _BookingsPageState extends State<BookingsPage>
                           Icon(Icons.touch_app, size: 16, color: Colors.grey[600]),
                           SizedBox(width: 8),
                           Text(
-                            'Long press a booking to select and delete it.',
+                            'Long press a movie booking to select and delete it.',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 13,
@@ -476,14 +456,14 @@ class _BookingsPageState extends State<BookingsPage>
         children: [
           Icon(
             Icons.event_busy,
-            color: Colors.teal.shade200,
+            color: Colors.red.shade200,
             size: 100,
           ),
           SizedBox(height: 28),
           Text(
             'No bookings found',
             style: TextStyle(
-              color: Colors.teal.shade700,
+              color: Colors.red.shade700,
               fontWeight: FontWeight.bold,
               fontSize: 22,
               letterSpacing: 0.1,
@@ -530,7 +510,7 @@ Widget build(BuildContext context) {
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.teal.shade500,
+                  color: Colors.red.shade500,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: TabBar(
@@ -538,7 +518,7 @@ Widget build(BuildContext context) {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  labelColor: Colors.teal.shade800,
+                  labelColor: Colors.red.shade800,
                   unselectedLabelColor: Colors.white,
                   labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                   indicatorPadding: EdgeInsets.symmetric(horizontal: 1, vertical: 4),

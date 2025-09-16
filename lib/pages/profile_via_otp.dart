@@ -199,7 +199,7 @@ class _ProfilePageViaOtpState extends State<ProfilePageViaOtp> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Your query will be answered in 3 business days & sent to your registered email/phone number.'),
-          backgroundColor: Colors.teal,
+          backgroundColor: Colors.red,
         ),
       );
       if (userData['email'] != null && (userData['email'] as String).isNotEmpty) {
@@ -537,7 +537,7 @@ class _ProfilePageViaOtpState extends State<ProfilePageViaOtp> {
                                               : Icon(Icons.send),
                                           label: Text(_isSubmittingSupport ? 'Submitting...' : 'Submit Ticket', style: TextStyle(fontWeight: FontWeight.bold)),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.teal,
+                                            backgroundColor: Colors.red.shade600,
                                             foregroundColor: Colors.white,
                                             padding: EdgeInsets.symmetric(vertical: 16),
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -555,7 +555,7 @@ class _ProfilePageViaOtpState extends State<ProfilePageViaOtp> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Divider(),
-                                    Text('Previous Tickets', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal[800], fontSize: 16)),
+                                    Text('Previous Tickets', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade800, fontSize: 16)),
                                     const SizedBox(height: 8),
                                     StreamBuilder<QuerySnapshot>(
                                       stream: FirebaseFirestore.instance
@@ -590,7 +590,7 @@ class _ProfilePageViaOtpState extends State<ProfilePageViaOtp> {
                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                               margin: EdgeInsets.only(bottom: 12),
                                               child: ListTile(
-                                                leading: Icon(Icons.support_agent, color: Colors.teal),
+                                                leading: Icon(Icons.support_agent, color: Colors.red.shade600),
                                                 title: Text(ticket['subject'] ?? 'No Subject'),
                                                 subtitle: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,

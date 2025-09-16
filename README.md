@@ -1,14 +1,14 @@
-# BookTheBiz 🏟️
+# BookMyBiz 🎬
 
 <div align="center">
-  <img src="lib/assets/app.png" alt="BookTheBiz Logo" width="120" height="120">
+  <img src="lib/assets/app.png" alt="BookMyBiz Logo" width="120" height="120">
   
-  **A Complete Turf Booking Management System**
+  **A Complete Movie Theatre Booking Management System**
   
-  [![Version](https://img.shields.io/badge/Version-20-brightgreen.svg)](https://play.google.com/store)
+  [![Version](https://img.shields.io/badge/Version-1.0-brightgreen.svg)](https://play.google.com/store)
   [![Platform](https://img.shields.io/badge/Platform-Flutter-blue.svg)](https://flutter.dev)
   [![Firebase](https://img.shields.io/badge/Backend-Firebase-orange.svg)](https://firebase.google.com)
-  [![Live](https://img.shields.io/badge/Status-Live%20on%20PlayStore-success.svg)](https://play.google.com/store)
+  [![Live](https://img.shields.io/badge/Status-Development-yellow.svg)](https://play.google.com/store)
 </div>
 
 ---
@@ -17,14 +17,14 @@
 
 **Developed by:** [Punchbiz](https://punchbiz.com)  
 **Lead Developer:** Mohamed Athik R (App Developer)  
-**Current Version:** 20 (Live on Google Play Store)  
+**Current Version:** 1.0 (In Development)  
 **Platform:** Flutter (Android & iOS)
 
 ---
 
 ## 📱 Application Overview
 
-BookTheBiz is a comprehensive turf booking management system that connects turf owners with customers, providing a seamless platform for sports facility reservations. The application supports multiple user roles, real-time booking management, integrated payment processing, and automated business operations.
+BookMyBiz is a comprehensive movie theatre booking management system that connects cinema owners with movie enthusiasts, providing a seamless platform for movie ticket reservations. The application supports multiple user roles, real-time seat booking management, integrated payment processing, and automated business operations.
 
 ---
 
@@ -45,38 +45,37 @@ graph TD
     F --> I[Guest Mode]
     
     E -->|Admin| J[Admin Dashboard]
-    E -->|Turf Owner| K[Owner Dashboard]
+    E -->|Theatre Owner| K[Owner Dashboard]
     E -->|Customer| L[Customer Dashboard]
     
     %% Customer Flow
-    L --> M[Browse Turfs]
+    L --> M[Browse Movies]
     M --> N[Filter & Search]
-    N --> O[View Turf Details]
-    O --> P[Select Date & Time]
-    P --> Q[Choose Payment Method]
-    Q -->|Online| R[Razorpay Payment]
-    Q -->|On-Spot| S[OSP Booking]
-    R --> T[Payment Processing]
-    T --> U[Booking Confirmation]
-    S --> U
-    U --> V[Email/SMS Notification]
+    N --> O[View Movie Details]
+    O --> P[Select Theatre & Show]
+    P --> Q[Choose Seats]
+    Q --> R[Razorpay Payment]
+    R --> S[Payment Processing]
+    S --> T[Booking Confirmation]
+    T --> U[Email/SMS Notification]
     
     %% Owner Flow
-    K --> W[Manage Turfs]
-    W --> X[Add/Edit Turfs]
+    K --> V[Manage Theatres]
+    V --> W[Add/Edit Screens]
+    W --> X[Manage Shows]
     W --> Y[View Bookings]
-    W --> Z[Booking Analytics]
-    Y --> AA[Accept/Reject Bookings]
+    Y --> Z[Booking Analytics]
+    X --> AA[Add Movies & Showtimes]
     AA --> BB[Payout Processing]
     
     %% Admin Flow
-    J --> CC[User Verification]
+    J --> CC[Theatre Verification]
     J --> DD[Support Tickets]
     CC --> EE[Approve/Reject Owners]
     DD --> FF[Respond to Tickets]
     
     %% Cloud Functions
-    U --> GG[Cloud Function Trigger]
+    T --> GG[Cloud Function Trigger]
     GG --> HH[Payment Split Calculation]
     HH --> II[Owner Payout Transfer]
     II --> JJ[Settlement Recording]
@@ -96,20 +95,20 @@ Start Page → Register → Email/Mobile Verification → OTP Verification → P
 
 #### 3. **Booking Flow (Customer)**
 ```
-Browse Turfs → Apply Filters → Select Turf → View Details → Choose Date/Time → 
-Select Ground → Payment Method → Process Payment → Booking Confirmation → 
+Browse Movies → Apply Filters → Select Movie → View Details → Choose Theatre & Show → 
+Select Seats → Process Payment → Booking Confirmation → 
 Email/SMS Notification → Cloud Function Trigger → Payment Split
 ```
 
-#### 4. **Turf Management Flow (Owner)**
+#### 4. **Theatre Management Flow (Owner)**
 ```
-Owner Dashboard → Add Turf → Upload Images → Set Pricing → Define Availability → 
-Account Verification → Receive Bookings → Manage Bookings → Receive Payouts
+Owner Dashboard → Add Theatre → Upload Images → Add Screens → Define Seat Layout → 
+Add Movies & Shows → Account Verification → Receive Bookings → Manage Shows → Receive Payouts
 ```
 
 #### 5. **Admin Management Flow**
 ```
-Admin Login → User Verification → Document Review → Approve/Reject → 
+Admin Login → Theatre Verification → Document Review → Approve/Reject → 
 Support Ticket Management → System Monitoring
 ```
 
@@ -119,33 +118,32 @@ Support Ticket Management → System Monitoring
 
 ### 🔵 **Customer (User)**
 - **Capabilities:**
-  - Browse and search turfs
-  - Filter by location, sports type, price
-  - View detailed turf information
-  - Book turfs with date/time selection
+  - Browse and search movies
+  - Filter by location, genre, language, rating
+  - View detailed movie information
+  - Book movie tickets with seat selection
   - Make online payments via Razorpay
-  - Opt for On-Spot Payment (if enabled)
   - View booking history
-  - Cancel bookings (8+ hours in advance)
+  - Cancel bookings (3+ hours in advance)
   - Raise support tickets
   - Manage profile
 
-### 🟢 **Turf Owner**
+### 🟢 **Theatre Owner**
 - **Capabilities:**
-  - Add and manage multiple turfs
-  - Upload turf images with spotlight image
-  - Set dynamic pricing per ground type
-  - Define available time slots
-  - Enable/disable On-Spot Payment
+  - Add and manage multiple theatres
+  - Upload theatre images with spotlight image
+  - Add multiple screens with custom seat layouts
+  - Define seat categories and pricing
+  - Add movies and manage showtimes
   - View real-time booking analytics
   - Manage booking requests
-  - Receive automated payouts
+  - Receive automated payouts (88% of ticket price)
   - Track settlement history
-  - Update turf status (Open/Closed)
+  - Update theatre status (Open/Closed)
 
 ### 🔴 **Admin**
 - **Capabilities:**
-  - Verify turf owner documents (Aadhaar, PAN, GST)
+  - Verify theatre owner documents (Aadhaar, PAN, GST)
   - Approve/reject owner registrations
   - Manage support ticket system
   - Monitor platform transactions
@@ -165,10 +163,10 @@ users/{userId} {
   name: string,
   email: string,
   mobile: string,
-  userType: "User" | "Turf Owner" | "adminuser",
+  userType: "User" | "Theatre Owner" | "adminuser",
   status: "yes" | "Not Confirmed" | "Disagree",
   imageUrl?: string,
-  razorpayAccountId?: string, // For turf owners
+  razorpayAccountId?: string, // For theatre owners
   createdAt: timestamp,
   verifiedby?: {
     id: string,
@@ -178,55 +176,123 @@ users/{userId} {
 }
 ```
 
-#### **Turfs Collection**
+#### **Movie Theatres Collection**
 ```javascript
-turfs/{turfId} {
-  turfId: string,
+movie_theatres/{theatreId} {
+  theatreId: string,
   name: string,
   description: string,
-  price: Map<string, number>, // Ground type -> price mapping
   imageUrl: string, // Spotlight image
-  turfimages: string[], // Additional images
+  theatreImages: string[], // Additional images
   facilities: string[],
-  availableGrounds: string[],
-  selectedSlots: string[],
   ownerId: string,
   location: string,
   latitude?: number,
   longitude?: number,
   status: "Open" | "Closed",
-  isosp: boolean, // On-Spot Payment enabled
-  hasLocation: boolean
-}
-```
-
-#### **Bookings Collection**
-```javascript
-bookings/{bookingId} {
-  userId: string,
-  userName: string,
-  turfId: string,
-  turfName: string,
-  bookingDate: string, // YYYY-MM-DD
-  bookingSlots: string[],
-  bookingStatus: string[], // Cancelled slots
-  selectedGround: string,
-  amount: number,
-  totalHours: number,
-  paymentMethod: "Online" | "On Spot Payment",
-  status: "confirmed" | "pending" | "cancelled",
-  razorpayPaymentId?: string,
-  razorpayOrderId?: string,
-  payoutStatus?: "pending" | "settled" | "failed",
+  theatre_status: "Verified" | "Not Verified" | "Disapproved",
+  hasLocation: boolean,
   createdAt: timestamp
 }
 ```
 
-#### **Turf Bookings Sub-collection**
+#### **Movie Screens Collection**
 ```javascript
-turfs/{turfId}/bookings/{bookingId} {
-  // Same structure as main bookings collection
-  // Used for turf-specific booking queries
+movie_screens/{screenId} {
+  screenId: string,
+  theatreId: string,
+  screenName: string,
+  totalSeats: number,
+  rows: number,
+  seatsPerRow: number,
+  seatLayout: {
+    [rowLetter]: {
+      [seatNumber]: {
+        category: "Regular" | "Premium" | "VIP",
+        price: number,
+        available: boolean
+      }
+    }
+  },
+  screenType: "2D" | "3D" | "IMAX" | "4DX",
+  createdAt: timestamp
+}
+```
+
+#### **Movies Collection**
+```javascript
+movies/{movieId} {
+  movieId: string,
+  title: string,
+  description: string,
+  genre: string[],
+  language: string[],
+  duration: number, // in minutes
+  rating: string, // U, UA, A
+  releaseDate: string,
+  posterUrl: string,
+  trailerUrl?: string,
+  cast: string[],
+  director: string,
+  status: "Now Showing" | "Coming Soon" | "Ended"
+}
+```
+
+#### **Movie Shows Collection**
+```javascript
+movie_shows/{showId} {
+  showId: string,
+  movieId: string,
+  theatreId: string,
+  screenId: string,
+  showDate: string, // YYYY-MM-DD
+  showTime: string, // HH:MM
+  endTime: string, // HH:MM
+  availableSeats: number,
+  bookedSeats: string[], // ["A1", "A2", "B5"]
+  pricing: {
+    Regular: number,
+    Premium: number,
+    VIP: number
+  },
+  createdAt: timestamp
+}
+```
+
+#### **Movie Bookings Collection**
+```javascript
+movie_bookings/{bookingId} {
+  userId: string,
+  userName: string,
+  movieId: string,
+  movieTitle: string,
+  theatreId: string,
+  theatreName: string,
+  screenId: string,
+  screenName: string,
+  showId: string,
+  showDate: string,
+  showTime: string,
+  selectedSeats: string[], // ["A1", "A2"]
+  seatCategories: string[], // ["Regular", "Premium"]
+  totalAmount: number,
+  platformFee: number, // 12% commission (hidden from user)
+  actualTicketPrice: number,
+  paymentMethod: "Online",
+  status: "confirmed" | "pending" | "cancelled",
+  razorpayPaymentId?: string,
+  razorpayOrderId?: string,
+  payoutStatus?: "pending" | "settled" | "failed",
+  createdAt: timestamp,
+  canCancel: boolean // true if >3 hours before show
+}
+```
+
+#### **Theatre Bookings Sub-collection**
+```javascript
+movie_theatres/{theatreId}/bookings/{bookingId} {
+  // Same structure as main movie_bookings collection
+  // Used for theatre-specific booking queries
 }
 ```
 
@@ -256,20 +322,20 @@ support_tickets/{ticketId} {
 
 #### **Settlement Tracking Collections**
 ```javascript
-booking_settlements/{bookingId} {
+movie_booking_settlements/{bookingId} {
   booking_id: string,
-  turf_id: string,
+  theatre_id: string,
   total_paid: number,
-  owner_share: number,
-  platform_profit: number,
+  owner_share: number, // 88% of ticket price
+  platform_profit: number, // 12% commission
   razorpay_payment_id: string,
   owner_account_id: string,
   settledAt: timestamp
 }
 
-razorpay_orders/{orderId} {
+movie_razorpay_orders/{orderId} {
   booking_id: string,
-  turf_id: string,
+  theatre_id: string,
   total_paid: number,
   owner_share: number,
   platform_profit: number,
@@ -294,14 +360,14 @@ sequenceDiagram
     participant O as Owner Account
     participant DB as Database
 
-    C->>A: Select booking & payment
+    C->>A: Select seats & payment
     A->>R: Create order with transfer split
     R->>A: Return order details
     A->>C: Show payment interface
     C->>R: Complete payment
     R->>CF: Payment webhook/trigger
-    CF->>CF: Calculate profit split
-    CF->>R: Transfer owner share
+    CF->>CF: Calculate profit split (12%)
+    CF->>R: Transfer owner share (88%)
     R->>O: Transfer funds to owner
     CF->>DB: Record settlement
     CF->>A: Update booking status
@@ -310,182 +376,120 @@ sequenceDiagram
 
 ### 💰 **Payment Split Logic**
 
-The application implements a sophisticated payment splitting system:
+The application implements a fixed commission structure:
 
-#### **Profit Calculation Slabs:**
-- **< ₹1000:** 15% platform profit
-- **₹1000-₹3000:** Fixed ₹110 platform profit  
-- **> ₹3000:** Fixed ₹210 platform profit
+#### **Commission Structure:**
+- **Platform Commission:** 12% of total ticket price
+- **Theatre Owner Share:** 88% of total ticket price
 
 #### **Fee Structure:**
 - **Razorpay Fee:** 2% + 18% GST = 2.36%
-- **Total Charge Formula:** `(turfRate + platformProfit) / (1 - 0.0236)`
-- **Owner Receives:** Full turf rate (base amount)
-- **Platform Keeps:** Profit + Razorpay fees
+- **Total Charge Formula:** `ticketPrice * 1.12` (includes 12% platform fee)
+- **Owner Receives:** 88% of displayed ticket price
+- **Platform Keeps:** 12% commission + Razorpay fees
 
 #### **Example Calculation:**
 ```javascript
-// For ₹2000 turf rate:
-Platform Profit = ₹110 (fixed slab)
-Razorpay Fee = 2.36%
-Total Charged = (2000 + 110) / (1 - 0.0236) = ₹2162
-Owner Receives = ₹2000
-Platform Keeps = ₹162 (₹110 profit + ₹52 fees)
+// For ₹200 base ticket price:
+Platform Commission = ₹24 (12%)
+Displayed Price = ₹224 (₹200 + ₹24)
+Razorpay Fee = ₹5.29 (2.36% of ₹224)
+Owner Receives = ₹200 (base price)
+Platform Keeps = ₹29.29 (₹24 commission + ₹5.29 fees)
 ```
 
 ---
 
-## ☁️ Cloud Functions Architecture
-
-### 🚀 **Firebase Cloud Functions**
-
-#### **1. onBookingCreated Trigger**
-```javascript
-// Triggered when: New booking document created
-// Location: turfs/{turfId}/bookings/{bookingId}
-// Purpose: Automated payment splitting and owner payouts
-```
-
-**Function Flow:**
-1. **Validation Checks:**
-   - Payment method is "Online"
-   - Booking status is "confirmed"
-   - Payout not already settled
-   - Valid amount and payment ID
-
-2. **Owner Account Resolution:**
-   - Fetch turf owner details
-   - Validate Razorpay connected account ID
-   - Ensure account ID format (starts with 'acc_')
-
-3. **Payment Processing:**
-   - Calculate owner share (full turf rate)
-   - Calculate platform profit based on slabs
-   - Execute Razorpay Route transfer
-   - Update booking with settlement details
-
-4. **Settlement Recording:**
-   - Create settlement record in `booking_settlements`
-   - Track profit distribution
-   - Log transaction details
-
-#### **2. createRazorpayOrderWithTransfer Callable Function**
-```javascript
-// Purpose: Create Razorpay orders with pre-configured transfers
-// Called from: Frontend during payment initiation
-```
-
-**Function Features:**
-- Pre-calculates payment splits
-- Creates orders with transfer configuration
-- Validates owner account details
-- Records order tracking information
-
----
-
-## 🔐 Authentication System
-
-### 📱 **Multi-Modal Authentication**
-
-#### **1. Email/Password Authentication**
-- Standard Firebase Auth
-- Password reset functionality
-- Credential saving option
-- Auto-login for returning users
-
-#### **2. OTP-Based Authentication**
-- Phone number verification
-- SMS auto-fill support (Android)
-- 60-second OTP expiry
-- Resend OTP functionality
-- Automatic user type detection
-
-#### **3. Guest Mode**
-- Browse turfs without registration
-- View turf details and pricing
-- Prompted to register for booking
-
----
-
-## 🎨 Core Functionalities
+## 🎬 Core Functionalities
 
 ### 🏠 **Customer Features**
 
-#### **Turf Discovery & Booking**
+#### **Movie Discovery & Booking**
 - **Advanced Search & Filtering:**
   - Location-based filtering
-  - Sports type filtering
-  - Price range filtering
-  - Real-time availability
+  - Genre and language filtering
+  - Rating and release date filtering
+  - Real-time show availability
+
+- **Seat Selection:**
+  - Interactive seat map
+  - Category-wise pricing (Regular/Premium/VIP)
+  - Real-time seat availability
+  - Multiple seat selection
 
 - **Booking Management:**
-  - Interactive calendar selection
-  - Time slot availability checking
-  - Multi-hour booking support
+  - Show time selection
+  - Seat category selection
   - Automatic conflict detection
+  - 3-hour cancellation policy
 
-- **Payment Options:**
+#### **Payment & Tickets**
+- **Secure Payments:**
   - Razorpay integration (UPI, Cards, Net Banking)
-  - On-Spot Payment (if enabled by owner)
-  - Secure payment processing
   - Automatic receipt generation
+  - Digital ticket with QR code
 
 #### **Booking History & Management**
 - **Categorized View:**
-  - Upcoming bookings
+  - Upcoming shows
   - Past bookings
   - Cancelled bookings
 
 - **Cancellation Policy:**
-  - 8+ hours advance cancellation
+  - 3+ hours advance cancellation
   - Automatic refund processing
-  - Partial cancellation support
+  - No refund for late cancellations
 
-### 🏢 **Turf Owner Features**
+### 🏢 **Theatre Owner Features**
 
-#### **Turf Management**
-- **Multi-Turf Support:**
-  - Add unlimited turfs
+#### **Theatre Management**
+- **Multi-Theatre Support:**
+  - Add unlimited theatres
   - Image gallery with spotlight image
   - Drag-and-drop image reordering
-  - Dynamic pricing per ground type
+  - Theatre facility management
 
-- **Availability Management:**
-  - Custom time slot creation
-  - Morning/evening slot templates
-  - Real-time availability updates
-  - Bulk slot management
+#### **Screen Management**
+- **Custom Screen Setup:**
+  - Add multiple screens per theatre
+  - Define seat layout (rows and seats per row)
+  - Set seat categories and pricing
+  - Screen type configuration (2D/3D/IMAX/4DX)
 
-- **Business Analytics:**
+#### **Movie & Show Management**
+- **Show Scheduling:**
+  - Add current movies
+  - Create multiple shows per day
+  - Set show timings
+  - Manage seat availability
+
+#### **Business Analytics**
+- **Revenue Tracking:**
   - Booking statistics
-  - Revenue tracking
+  - Revenue per show/movie
+  - Occupancy rates
   - Customer insights
-  - Performance metrics
 
 #### **Financial Management**
 - **Automated Payouts:**
   - Razorpay Route integration
+  - 88% revenue share
   - Real-time settlement tracking
-  - Transparent profit sharing
   - Settlement history
-
-- **Pricing Control:**
-  - Ground-specific pricing
-  - Dynamic rate adjustment
-  - Seasonal pricing support
 
 ### 👨‍💼 **Admin Features**
 
-#### **User Verification System**
+#### **Theatre Verification System**
 - **Document Verification:**
   - Aadhaar card verification
   - PAN card verification
   - GST number validation (optional)
   - Razorpay account ID validation
 
-- **Approval Workflow:**
-  - Review submitted documents
-  - Approve/reject applications
+#### **Approval Workflow**
+- **Theatre Management:**
+  - Review theatre applications
+  - Approve/reject registrations
   - Verification tracking
   - Automated notifications
 
@@ -498,41 +502,36 @@ Platform Keeps = ₹162 (₹110 profit + ₹52 fees)
 
 ---
 
-## 🎫 Support Ticket System
+## 🎫 Movie Booking Features
 
-### 📧 **Support Email Configuration**
+### 🎬 **Movie Management**
+- **Movie Database:**
+  - Comprehensive movie information
+  - Poster and trailer integration
+  - Cast and crew details
+  - Genre and language categorization
 
-#### **Support Channels:**
-- **Customer Support:** `customersbtb@gmail.com`
-- **Owner Support:** `ownersbtb@gmail.com`
-- **Admin Access:** `adminpunchbiz@gmail.com`
+### 🎭 **Show Management**
+- **Flexible Scheduling:**
+  - Multiple shows per day
+  - Different pricing for different times
+  - Weekend and holiday pricing
+  - Special screening management
 
-#### **Admin Credentials:**
-```
-Email: adminpunchbiz@gmail.com
-Password: punchbiz@2025
-```
+### 💺 **Seat Management**
+- **Interactive Seat Selection:**
+  - Visual seat map like BookMyShow
+  - Row-wise organization (A, B, C...)
+  - Seat numbering (1, 2, 3...)
+  - Category-based pricing
+  - Real-time availability updates
 
-### 🎯 **Ticket Flow Process**
-
-```mermaid
-graph LR
-    A[User Raises Ticket] --> B[Ticket Created in Firestore]
-    B --> C[Auto-Acknowledgment Email]
-    C --> D[Admin Dashboard Notification]
-    D --> E[Admin Reviews Ticket]
-    E --> F[Admin Responds via Email]
-    F --> G[Ticket Status: Closed]
-    G --> H[User Receives Response]
-```
-
-#### **Ticket Lifecycle:**
-1. **Creation:** User submits ticket through profile page
-2. **Acknowledgment:** Automatic email sent to user
-3. **Processing:** Admin reviews in dashboard
-4. **Response:** Admin sends email response
-5. **Closure:** Ticket marked as closed
-6. **SLA:** 3 business days response time
+### 🎟️ **Ticket Features**
+- **Digital Tickets:**
+  - QR code for entry
+  - Booking details
+  - Theatre information
+  - Show timings
 
 ---
 
@@ -542,7 +541,7 @@ graph LR
 
 #### **Booking Confirmations:**
 - Sent via external email service
-- Contains booking details, turf information
+- Contains booking details, movie information
 - Includes cancellation policy
 - QR code for easy access
 
@@ -572,8 +571,8 @@ POST https://cloud-functions-vnxv.onrender.com/sendSupportAck
 #### **In-App Notifications:**
 - Real-time booking updates
 - Payment confirmations
-- Cancellation alerts
-- System announcements
+- Show reminders
+- New movie releases
 
 #### **Email Notifications:**
 - Booking confirmations
@@ -583,234 +582,9 @@ POST https://cloud-functions-vnxv.onrender.com/sendSupportAck
 
 #### **SMS Notifications:**
 - OTP delivery
-- Booking reminders
-- Payment confirmations
+- Booking confirmations
+- Show reminders
 - Emergency alerts
-
----
-
-## 💾 Database Design & Schema
-
-### 🗄️ **Firestore Database Structure**
-
-```
-📁 Root Collection
-├── 👥 users/
-│   ├── {userId}/
-│   │   ├── Personal Information
-│   │   ├── Authentication Data
-│   │   ├── Role & Permissions
-│   │   └── Verification Status
-│   
-├── 🏟️ turfs/
-│   ├── {turfId}/
-│   │   ├── Basic Information
-│   │   ├── Pricing Structure
-│   │   ├── Media Assets
-│   │   ├── Availability Slots
-│   │   └── 📅 bookings/ (Sub-collection)
-│   │       └── {bookingId}/
-│   
-├── 📋 bookings/ (Global)
-│   ├── {bookingId}/
-│   │   ├── Booking Details
-│   │   ├── Payment Information
-│   │   ├── Status Tracking
-│   │   └── Settlement Data
-│   
-├── 📄 documents/
-│   ├── {userId}/
-│   │   ├── Aadhaar (Base64)
-│   │   ├── PAN (Base64)
-│   │   └── GST Number
-│   
-├── 🎫 support_tickets/
-│   ├── {ticketId}/
-│   │   ├── User Information
-│   │   ├── Ticket Content
-│   │   ├── Status & Responses
-│   │   └── Timestamps
-│   
-├── 💰 booking_settlements/
-│   ├── {bookingId}/
-│   │   ├── Financial Breakdown
-│   │   ├── Transfer Details
-│   │   └── Settlement Timestamp
-│   
-└── 📊 razorpay_orders/
-    ├── {orderId}/
-    │   ├── Order Information
-    │   ├── Split Configuration
-    │   └── Tracking Data
-```
-
-### 🔗 **Relationship Mapping**
-
-```mermaid
-erDiagram
-    USERS ||--o{ TURFS : owns
-    USERS ||--o{ BOOKINGS : makes
-    USERS ||--o{ DOCUMENTS : submits
-    USERS ||--o{ SUPPORT_TICKETS : raises
-    
-    TURFS ||--o{ TURF_BOOKINGS : contains
-    TURFS ||--o{ SETTLEMENTS : generates
-    
-    BOOKINGS ||--|| SETTLEMENTS : triggers
-    BOOKINGS ||--|| RAZORPAY_ORDERS : creates
-    
-    USERS {
-        string uid PK
-        string name
-        string email
-        string mobile
-        string userType
-        string status
-        string razorpayAccountId
-    }
-    
-    TURFS {
-        string turfId PK
-        string name
-        string ownerId FK
-        map price
-        array facilities
-        array availableGrounds
-        boolean isosp
-        string status
-    }
-    
-    BOOKINGS {
-        string bookingId PK
-        string userId FK
-        string turfId FK
-        string bookingDate
-        array bookingSlots
-        number amount
-        string paymentMethod
-        string status
-    }
-```
-
----
-
-## 🔧 Technical Implementation
-
-### 🏗️ **Architecture Patterns**
-
-#### **Frontend (Flutter)**
-- **State Management:** StatefulWidget with setState
-- **Navigation:** MaterialPageRoute with named routes
-- **UI Framework:** Material Design 3
-- **Image Handling:** Firebase Storage integration
-- **Local Storage:** SharedPreferences for credentials
-
-#### **Backend (Firebase)**
-- **Authentication:** Firebase Auth with multi-provider
-- **Database:** Cloud Firestore with real-time listeners
-- **Storage:** Firebase Storage for media assets
-- **Functions:** Node.js Cloud Functions for business logic
-- **Hosting:** Firebase Hosting for web assets
-
-#### **Payment Integration**
-- **Gateway:** Razorpay with Route transfers
-- **Security:** Server-side validation
-- **Compliance:** PCI DSS compliant processing
-- **Settlement:** Automated split transfers
-
-### 📱 **Key Features Implementation**
-
-#### **Real-time Updates**
-```dart
-StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance
-    .collection('turfs')
-    .where('status', isEqualTo: 'Open')
-    .snapshots(),
-  builder: (context, snapshot) {
-    // Real-time turf availability updates
-  }
-)
-```
-
-#### **Location Services**
-```dart
-// GPS-based location detection
-Position position = await Geolocator.getCurrentPosition();
-List<Placemark> placemarks = await placemarkFromCoordinates(
-  position.latitude, 
-  position.longitude
-);
-```
-
-#### **Image Management**
-```dart
-// Multi-image upload with reordering
-final pickedImages = await ImagePicker().pickMultiImage();
-List<String> imageUrls = await _uploadImages(pickedImages);
-```
-
----
-
-## 🚀 Getting Started
-
-### 📋 **Prerequisites**
-- Flutter SDK (>=3.3.3)
-- Firebase Project Setup
-- Razorpay Account & API Keys
-- Android Studio / VS Code
-- Git
-
-### ⚙️ **Installation Steps**
-
-1. **Clone Repository**
-```bash
-git clone <repository-url>
-cd bookthebiz
-```
-
-2. **Install Dependencies**
-```bash
-flutter pub get
-```
-
-3. **Firebase Configuration**
-```bash
-# Add google-services.json (Android)
-# Add GoogleService-Info.plist (iOS)
-# Configure Firebase project settings
-```
-
-4. **Environment Setup**
-```bash
-# Configure Razorpay keys in Cloud Functions
-# Set up email service endpoints
-# Configure Firebase Security Rules
-```
-
-5. **Run Application**
-```bash
-flutter run
-```
-
-### 🔧 **Configuration Files**
-
-#### **Firebase Configuration**
-- `firebase.json` - Firebase project configuration
-- `firestore.rules` - Database security rules
-- `storage.rules` - File storage security rules
-
-#### **Cloud Functions Setup**
-```javascript
-// functions/index.js
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-const Razorpay = require('razorpay');
-
-// Environment variables required:
-// RAZORPAY_KEY_ID
-// RAZORPAY_KEY_SECRET
-```
 
 ---
 
@@ -827,33 +601,38 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Turfs - open read, authenticated write
-    match /turfs/{turfId} {
+    // Theatres - open read, authenticated write
+    match /movie_theatres/{theatreId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
     
-    // Bookings - users can only access their own bookings
-    match /bookings/{bookingId} {
+    // Movie bookings - users can only access their own bookings
+    match /movie_bookings/{bookingId} {
       allow read, write: if request.auth != null && 
         request.auth.uid == resource.data.userId;
+    }
+    
+    // Movies - open read for all users
+    match /movies/{movieId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Movie shows - open read, owner write
+    match /movie_shows/{showId} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }
 ```
 
-### 🔐 **Authentication Security**
-- Firebase Auth with email verification
-- Phone number verification via OTP
-- Secure credential storage
-- Session management
-- Role-based access control
-
 ---
 
 ## 📊 Business Logic & Workflows
 
-### 🏪 **Turf Owner Onboarding**
+### 🏪 **Theatre Owner Onboarding**
 
 ```mermaid
 graph TD
@@ -863,8 +642,10 @@ graph TD
     D --> E[Admin Verification]
     E -->|Approved| F[Razorpay Account Setup]
     E -->|Rejected| G[Re-submission Required]
-    F --> H[Turf Listing Creation]
-    H --> I[Go Live]
+    F --> H[Theatre Creation]
+    H --> I[Screen Setup]
+    I --> J[Movie & Show Management]
+    J --> K[Go Live]
     G --> D
 ```
 
@@ -875,8 +656,8 @@ stateDiagram-v2
     [*] --> Pending
     Pending --> Confirmed : Payment Success
     Pending --> Failed : Payment Failed
-    Confirmed --> Cancelled : User Cancellation
-    Confirmed --> Completed : Booking Date Passed
+    Confirmed --> Cancelled : User Cancellation (>3hrs)
+    Confirmed --> Completed : Show Date Passed
     Cancelled --> [*]
     Completed --> [*]
     Failed --> [*]
@@ -884,112 +665,84 @@ stateDiagram-v2
 
 ---
 
-## 🎯 **Application Features Deep Dive**
+## 🎯 **Key Features**
 
-### 🔍 **Advanced Search & Discovery**
-- **Geolocation-based search**
-- **Multi-criteria filtering**
-- **Real-time availability checking**
-- **Price comparison**
-- **Rating and review system**
+### 🔍 **Advanced Movie Discovery**
+- **Smart Search & Filtering**
+- **Genre-based browsing**
+- **Language preferences**
+- **Rating-based filtering**
+- **Location-based theatre search**
 
-### 📱 **User Experience Features**
-- **Glassmorphic UI design**
+### 📱 **BookMyShow-like Experience**
+- **Intuitive seat selection**
+- **Real-time seat availability**
+- **Category-wise pricing display**
 - **Smooth animations and transitions**
 - **Responsive design for all screen sizes**
-- **Offline capability for basic browsing**
-- **Progressive image loading**
 
 ### 🔄 **Real-time Synchronization**
-- **Live booking updates**
+- **Live seat availability updates**
 - **Instant payment confirmations**
-- **Real-time chat support**
+- **Real-time show updates**
 - **Push notifications**
 - **Automatic data synchronization**
 
 ---
 
-## 🚀 **Deployment & Distribution**
+## 🚀 **Technical Implementation**
 
-### 📱 **Current Status**
-- **Version:** 20
-- **Platform:** Google Play Store (Live)
-- **Target:** Android 5.0+ (API 21+)
-- **Architecture:** ARM64, ARMv7, x86_64
+### 🏗️ **Architecture Patterns**
 
-### 🔄 **CI/CD Pipeline**
-- **Build:** Flutter build system
-- **Testing:** Automated unit tests
-- **Deployment:** Firebase App Distribution
-- **Monitoring:** Firebase Crashlytics
-- **Analytics:** Firebase Analytics
+#### **Frontend (Flutter)**
+- **State Management:** StatefulWidget with setState
+- **Navigation:** MaterialPageRoute with named routes
+- **UI Framework:** Material Design 3
+- **Image Handling:** Firebase Storage integration
+- **Local Storage:** SharedPreferences for credentials
 
----
+#### **Backend (Firebase)**
+- **Authentication:** Firebase Auth with multi-provider
+- **Database:** Cloud Firestore with real-time listeners
+- **Storage:** Firebase Storage for media assets
+- **Functions:** Node.js Cloud Functions for business logic
 
-## 📈 **Performance & Monitoring**
-
-### 📊 **Analytics Integration**
-- **Firebase Analytics** for user behavior tracking
-- **Firebase Performance** for app performance monitoring
-- **Custom events** for business metrics
-- **Crash reporting** with Firebase Crashlytics
-
-### ⚡ **Performance Optimizations**
-- **Image caching** and lazy loading
-- **Database query optimization**
-- **Efficient state management**
-- **Memory leak prevention**
-- **Battery usage optimization**
+#### **Payment Integration**
+- **Gateway:** Razorpay with Route transfers
+- **Commission:** Fixed 12% platform fee
+- **Security:** Server-side validation
+- **Settlement:** Automated split transfers (88% to owner)
 
 ---
 
-## 🛠️ **Development Guidelines**
+## 🎬 **Movie Booking Workflow**
 
-### 📝 **Code Structure**
-```
-lib/
-├── main.dart                 # App entry point
-├── pages/                    # UI screens
-│   ├── home_page.dart       # Customer dashboard
-│   ├── login.dart           # Authentication
-│   ├── bookingpage.dart     # Booking interface
-│   └── Turf owner/          # Owner-specific pages
-├── widgets/                  # Reusable components
-└── firebase_options.dart     # Firebase configuration
-```
+### 🎭 **Customer Journey**
+1. **Browse Movies:** View current and upcoming movies
+2. **Select Movie:** Choose preferred movie
+3. **Choose Theatre:** Select nearby theatre
+4. **Pick Show:** Select convenient show time
+5. **Select Seats:** Interactive seat selection
+6. **Payment:** Secure Razorpay payment
+7. **Confirmation:** Digital ticket with QR code
 
-### 🔧 **Best Practices**
-- **Modular architecture** with clear separation of concerns
-- **Consistent naming conventions**
-- **Comprehensive error handling**
-- **Responsive design principles**
-- **Security-first development**
+### 🏢 **Theatre Owner Journey**
+1. **Theatre Setup:** Add theatre with details
+2. **Screen Configuration:** Define screens with seat layouts
+3. **Movie Management:** Add current movies
+4. **Show Scheduling:** Create show timings
+5. **Revenue Tracking:** Monitor bookings and earnings
 
 ---
 
-## 🐛 **Troubleshooting & Support**
+## 📞 **Support Channels**
 
-### 🆘 **Common Issues**
+### 📧 **Support Email Configuration**
+- **Customer Support:** `customersbmb@gmail.com`
+- **Owner Support:** `ownersbmb@gmail.com`
+- **Admin Access:** `adminpunchbiz@gmail.com`
 
-#### **Payment Issues**
-- Verify Razorpay configuration
-- Check internet connectivity
-- Validate payment method
-- Contact support if persistent
-
-#### **Booking Conflicts**
-- Refresh availability data
-- Check time zone settings
-- Verify booking date format
-- Clear app cache if needed
-
-#### **Account Verification**
-- Ensure document clarity
-- Verify GST number format
-- Check Razorpay account status
-- Contact admin for manual review
-
-### 📞 **Support Contacts**
+### 📱 **Contact Information**
 - **Technical Support:** Available through in-app tickets
 - **Business Inquiries:** Contact via support emails
 - **Emergency Issues:** Priority support for critical problems
@@ -999,18 +752,18 @@ lib/
 ## 🔮 **Future Roadmap**
 
 ### 🎯 **Planned Features**
-- **Multi-language support**
-- **Advanced analytics dashboard**
+- **Food & beverage ordering**
 - **Loyalty program integration**
-- **Social features and community**
-- **AI-powered recommendations**
+- **Social features and reviews**
+- **AI-powered movie recommendations**
+- **Multi-language support**
 
 ### 🌟 **Enhancement Areas**
 - **Performance optimizations**
-- **UI/UX improvements**
-- **Additional payment methods**
+- **Advanced analytics dashboard**
 - **Enhanced security features**
 - **Expanded geographical coverage**
+- **Integration with movie databases**
 
 ---
 
@@ -1053,18 +806,16 @@ lib/
 - **Support:** Available through app support system
 
 ### 📧 **Support Channels**
-- **Customer Support:** `customersbtb@gmail.com`
-- **Owner Support:** `ownersbtb@gmail.com`
+- **Customer Support:** `customersbmb@gmail.com`
+- **Owner Support:** `ownersbmb@gmail.com`
 - **Admin Portal:** `adminpunchbiz@gmail.com`
 
 ---
 
 <div align="center">
   
-  **BookTheBiz - Revolutionizing Sports Facility Booking**
+  **BookMyBiz - Revolutionizing Movie Ticket Booking**
   
-  
-  
-  [![Download](https://img.shields.io/badge/Download-Google%20Play-green.svg)](https://play.google.com/store)
+  [![Download](https://img.shields.io/badge/Download-Coming%20Soon-blue.svg)](https://play.google.com/store)
   
 </div>

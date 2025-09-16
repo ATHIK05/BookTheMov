@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart'; // Import Lottie package
 import 'home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:odp/pages/bookingpage.dart'; // Assuming BookingPage is in this path
+import 'package:odp/pages/movie_booking_page.dart';
 
 class BookingFailedPage extends StatelessWidget {
   final String documentId;
@@ -23,10 +23,11 @@ class BookingFailedPage extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => BookingPage(
-              documentId: documentId,
-              documentname: documentname,
-              userId: userId,
+            builder: (context) => MovieBookingPage(
+              movieId: documentId,
+              theatreId: '',
+              showId: '',
+              showData: const {},
             ),
           ),
         );
@@ -57,10 +58,11 @@ class BookingFailedPage extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookingPage(
-                        documentId: documentId,
-                        documentname: documentname,
-                        userId: userId,
+                      builder: (context) => MovieBookingPage(
+                        movieId: documentId,
+                        theatreId: '',
+                        showId: '',
+                        showData: {},
                       ),
                     ),
                   );

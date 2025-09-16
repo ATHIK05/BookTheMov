@@ -35,11 +35,11 @@ class StartPage extends StatelessWidget {
                   // Optional: App brand/name at top-left (like “TURFY”)
                   // You can remove this if not needed
                   Text(
-                    'BookTheBiz',
+                    'BookMyBiz',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal.shade800,
+                      color: Colors.red.shade800,
                     ),
                   ),
 
@@ -59,11 +59,11 @@ class StartPage extends StatelessWidget {
 
                   // Main heading
                   Text(
-                    'Claim Your Turf Today',
+                    'Book Your Movie Today',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal.shade900,
+                      color: Colors.red.shade900,
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -71,7 +71,7 @@ class StartPage extends StatelessWidget {
 
                   // Subtext
                   Text(
-                    'Book your turf, schedule your game, and play your way—all from your smartphone',
+                    'Book your movie tickets, choose your seats, and enjoy the show—all from your smartphone',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade700,
@@ -94,13 +94,13 @@ class StartPage extends StatelessWidget {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            foregroundColor: Colors.teal.shade900,
+                            foregroundColor: Colors.red.shade900,
                             backgroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            side: BorderSide(color: Colors.teal.shade900, width: 2),
+                            side: BorderSide(color: Colors.red.shade900, width: 2),
                           ),
                           child: Text(
                             'Login',
@@ -122,7 +122,7 @@ class StartPage extends StatelessWidget {
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            backgroundColor: Colors.teal.shade900,
+                            backgroundColor: Colors.red.shade900,
                             padding: EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -157,7 +157,7 @@ class TealSwirlPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Paint settings
-    final paint = Paint()..color = Colors.teal.shade100;
+    final paint = Paint()..color = Colors.red.shade100;
 
     // Start a path that simulates a “swirl/star” behind the image
     final path = Path();

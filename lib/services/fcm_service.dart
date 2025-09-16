@@ -58,7 +58,7 @@ class FCMService {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await _firestore.collection('users').doc(user.uid).update({
+        await _firestore.collection('movie_users').doc(user.uid).update({
           'fcmToken': token,
           'lastTokenUpdate': FieldValue.serverTimestamp(),
         });
@@ -98,8 +98,8 @@ class FCMService {
     // Create notification channel for Android
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'verification_channel',
-      'Verification Notifications',
-      description: 'Notifications for user verification submissions',
+      'BookMyBiz Notifications',
+      description: 'Notifications for theatre verification and booking updates',
       importance: Importance.high,
     );
 
@@ -127,8 +127,8 @@ class FCMService {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'verification_channel',
-      'Verification Notifications',
-      channelDescription: 'Notifications for user verification submissions',
+      'BookMyBiz Notifications',
+      channelDescription: 'Notifications for theatre verification and booking updates',
       importance: Importance.high,
       priority: Priority.high,
       showWhen: true,

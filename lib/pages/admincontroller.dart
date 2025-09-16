@@ -23,9 +23,9 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
   bool isLoading = true;
 
   // 1. Add state for pending/verified turfs
-  List<Map<String, dynamic>> pendingTurfs = [];
-  List<Map<String, dynamic>> verifiedTurfs = [];
-  bool isLoadingTurfs = true;
+  List<Map<String, dynamic>> pendingTheatres = [];
+  List<Map<String, dynamic>> verifiedTheatres = [];
+  bool isLoadingTheatres = true;
 
   late TabController _tabController;
 
@@ -34,7 +34,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     fetchUserData();
-    fetchTurfData();
+    fetchTheatreData();
   }
 
   Future<void> fetchUserData() async {
@@ -42,7 +42,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
       isLoading = true;
     });
 
-    QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
+    QuerySnapshot usersSnapshot = await _firestore.collection('movie_users').get();
 
     List<Map<String, dynamic>> tempNotConfirmed = [];
     List<Map<String, dynamic>> tempConfirmed = [];
@@ -85,15 +85,15 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     return null;
   }
 
-  // 2. Fetch turfs from Firestore
-  Future<void> fetchTurfData() async {
-    setState(() { isLoadingTurfs = true; });
-    final pendingSnapshot = await _firestore.collection('turfs').where('turf_status', isEqualTo: 'Not Verified').get();
-    final verifiedSnapshot = await _firestore.collection('turfs').where('turf_status', isEqualTo: 'Verified').get();
+  // 2. Fetch theatres from Firestore
+  Future<void> fetchTheatreData() async {
+    setState(() { isLoadingTheatres = true; });
+    final pendingSnapshot = await _firestore.collection('movie_theatres').where('theatre_status', isEqualTo: 'Not Verified').get();
+    final verifiedSnapshot = await _firestore.collection('movie_theatres').where('theatre_status', isEqualTo: 'Verified').get();
     setState(() {
-      pendingTurfs = pendingSnapshot.docs.map((d) => {...d.data() as Map<String, dynamic>, 'id': d.id}).toList();
-      verifiedTurfs = verifiedSnapshot.docs.map((d) => {...d.data() as Map<String, dynamic>, 'id': d.id}).toList();
-      isLoadingTurfs = false;
+      pendingTheatres = pendingSnapshot.docs.map((d) => {...d.data() as Map<String, dynamic>, 'id': d.id}).toList();
+      verifiedTheatres = verifiedSnapshot.docs.map((d) => {...d.data() as Map<String, dynamic>, 'id': d.id}).toList();
+      isLoadingTheatres = false;
     });
   }
 
@@ -247,11 +247,6 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.grey[400],
-                      size: 20,
-                    ),
                   ],
                 ),
               ),
@@ -262,33 +257,33 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     }
   }
 
-  // 3. Build turf list
-  Widget _buildTurfList(List<Map<String, dynamic>> turfs, {required bool pending}) {
-    if (isLoadingTurfs) {
-      return Center(child: CircularProgressIndicator(color: Colors.teal));
+  // 3. Build theatre list
+  Widget _buildTheatreList(List<Map<String, dynamic>> theatres, {required bool pending}) {
+    if (isLoadingTheatres) {
+      return Center(child: CircularProgressIndicator(color: Colors.red));
     }
-    if (turfs.isEmpty) {
-      return Center(child: Text(pending ? 'No pending turfs.' : 'No verified turfs.', style: TextStyle(fontSize: 18, color: Colors.grey[700])));
+    if (theatres.isEmpty) {
+      return Center(child: Text(pending ? 'No pending theatres.' : 'No verified theatres.', style: TextStyle(fontSize: 18, color: Colors.grey[700])));
     }
     return ListView.builder(
-      itemCount: turfs.length,
+      itemCount: theatres.length,
       itemBuilder: (context, idx) {
-        final turf = turfs[idx];
+        final theatre = theatres[idx];
         return Card(
           margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           elevation: 4,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ListTile(
             contentPadding: EdgeInsets.all(16),
-            leading: turf['imageUrl'] != null && turf['imageUrl'].toString().isNotEmpty
+            leading: theatre['imageUrl'] != null && theatre['imageUrl'].toString().isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(turf['imageUrl'], width: 60, height: 60, fit: BoxFit.cover),
+                    child: Image.network(theatre['imageUrl'], width: 60, height: 60, fit: BoxFit.cover),
                   )
-                : Container(width: 60, height: 60, color: Colors.teal.shade50, child: Icon(Icons.sports_soccer, color: Colors.teal)),
-            title: Text(turf['name'] ?? 'Unknown Turf', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                : Container(width: 60, height: 60, color: Colors.red.shade50, child: Icon(Icons.movie, color: Colors.red)),
+            title: Text(theatre['name'] ?? 'Unknown Theatre', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             subtitle: FutureBuilder<DocumentSnapshot>(
-              future: _firestore.collection('users').doc(turf['ownerId']).get(),
+              future: _firestore.collection('movie_users').doc(theatre['ownerId']).get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Text('Loading owner info...', style: TextStyle(fontSize: 12, color: Colors.grey[600]));
@@ -298,12 +293,12 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                   final ownerName = ownerData['name'] ?? 'Unknown Owner';
                   final ownerEmail = ownerData['email'] ?? 'No email';
                   return Text(
-                    'Owner: $ownerName\nEmail: $ownerEmail\nLocation: ${turf['location'] ?? 'N/A'}',
+                    'Owner: $ownerName\nEmail: $ownerEmail\nLocation: ${theatre['location'] ?? 'N/A'}',
                     style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                   );
                 } else {
                   return Text(
-                    'Owner: Unknown\nLocation: ${turf['location'] ?? 'N/A'}',
+                    'Owner: Unknown\nLocation: ${theatre['location'] ?? 'N/A'}',
                     style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                   );
                 }
@@ -311,7 +306,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
             ),
             trailing: pending
                 ? ElevatedButton(
-                    onPressed: () => _showTurfDetailsDialog(turf),
+                    onPressed: () => _showTheatreDetailsDialog(theatre),
                     child: Text('Review',style: TextStyle(color: Colors.white),),
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                   )
@@ -322,12 +317,12 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     );
   }
 
-  // 4. Show turf details dialog
-  void _showTurfDetailsDialog(Map<String, dynamic> turf) async {
+  // 4. Show theatre details dialog
+  void _showTheatreDetailsDialog(Map<String, dynamic> theatre) async {
     // Fetch owner details
     Map<String, dynamic>? ownerData;
-    if (turf['ownerId'] != null) {
-      final ownerDoc = await _firestore.collection('users').doc(turf['ownerId']).get();
+    if (theatre['ownerId'] != null) {
+      final ownerDoc = await _firestore.collection('movie_users').doc(theatre['ownerId']).get();
       if (ownerDoc.exists) ownerData = ownerDoc.data() as Map<String, dynamic>?;
     }
     showDialog(
@@ -341,12 +336,12 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(turf['name'] ?? 'Unknown Turf', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.teal.shade900)),
+                Text(theatre['name'] ?? 'Unknown Theatre', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.red.shade900)),
                 SizedBox(height: 10),
-                if (turf['imageUrl'] != null && turf['imageUrl'].toString().isNotEmpty)
+                if (theatre['imageUrl'] != null && theatre['imageUrl'].toString().isNotEmpty)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(turf['imageUrl'], height: 160, width: double.infinity, fit: BoxFit.cover),
+                    child: Image.network(theatre['imageUrl'], height: 160, width: double.infinity, fit: BoxFit.cover),
                   ),
                 SizedBox(height: 10),
                 Text('Owner Info:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -357,22 +352,20 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                   Text('GST: ${ownerData['gst'] ?? 'N/A'}'),
                 ],
                 SizedBox(height: 8),
-                Text('Location: ${turf['location'] ?? 'N/A'}'),
+                Text('Location: ${theatre['location'] ?? 'N/A'}'),
                 SizedBox(height: 8),
-                Text('Description: ${turf['description'] ?? 'N/A'}'),
+                Text('Description: ${theatre['description'] ?? 'No description provided'}'),
                 SizedBox(height: 8),
-                Text('Available Grounds: ${(turf['availableGrounds'] as List?)?.join(", ") ?? 'N/A'}'),
+                Text('Theatre Facilities: ${(theatre['facilities'] as List?)?.join(", ") ?? 'No facilities listed'}'),
                 SizedBox(height: 8),
-                Text('Facilities: ${(turf['facilities'] as List?)?.join(", ") ?? 'N/A'}'),
-                SizedBox(height: 8),
-                if (turf['turfimages'] != null && (turf['turfimages'] as List).isNotEmpty) ...[
+                if (theatre['theatreImages'] != null && (theatre['theatreImages'] as List).isNotEmpty) ...[
                   Text('Gallery:', style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 6),
                   SizedBox(
                     height: 80,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
-                      children: (turf['turfimages'] as List).map<Widget>((img) => Padding(
+                      children: (theatre['theatreImages'] as List).map<Widget>((img) => Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -387,13 +380,13 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: () => _approveTurf(turf['id']),
+                      onPressed: () => _approveTheatre(theatre['id']),
                       icon: Icon(Icons.check, color: Colors.white),
                       label: Text('Approve',style: TextStyle(color: Colors.white),),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     ),
                     ElevatedButton.icon(
-                      onPressed: () => _showTurfRejectionDialog(turf['id']),
+                      onPressed: () => _showTheatreRejectionDialog(theatre['id']),
                       icon: Icon(Icons.cancel, color: Colors.white),
                       label: Text('Disapprove',style: TextStyle(color: Colors.white),),
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -408,37 +401,37 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     );
   }
 
-  // 5. Approve turf
-  Future<void> _approveTurf(String turfId) async {
+  // 5. Approve theatre
+  Future<void> _approveTheatre(String theatreId) async {
     try {
-      setState(() { isLoadingTurfs = true; });
+      setState(() { isLoadingTheatres = true; });
       
-      await _firestore.collection('turfs').doc(turfId).update({
-        'turf_status': 'Verified',
+      await _firestore.collection('movie_theatres').doc(theatreId).update({
+        'theatre_status': 'Verified',
         'approvedAt': FieldValue.serverTimestamp(),
         'approvedBy': _auth.currentUser?.uid ?? 'admin',
       });
       
-      await fetchTurfData();
+      await fetchTheatreData();
       Fluttertoast.showToast(
-        msg: 'Turf approved successfully! Now visible to users.',
+        msg: 'Theatre approved successfully! Now visible to users.',
         backgroundColor: Colors.green,
         textColor: Colors.white,
       );
       Navigator.pop(context);
     } catch (e) {
       Fluttertoast.showToast(
-        msg: 'Error approving turf: ${e.toString()}',
+        msg: 'Error approving theatre: ${e.toString()}',
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     } finally {
-      setState(() { isLoadingTurfs = false; });
+      setState(() { isLoadingTheatres = false; });
     }
   }
 
-  // 6. Disapprove turf
-  void _showTurfRejectionDialog(String turfId) {
+  // 6. Disapprove theatre
+  void _showTheatreRejectionDialog(String theatreId) {
     final TextEditingController reasonController = TextEditingController();
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     
@@ -452,7 +445,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
             children: [
               Icon(Icons.warning, color: Colors.orange),
               SizedBox(width: 8),
-              Text('Disapprove Turf', style: TextStyle(color: Colors.red.shade700)),
+              Text('Disapprove Theatre', style: TextStyle(color: Colors.red.shade700)),
             ],
           ),
           content: Form(
@@ -461,7 +454,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Please provide a clear reason for disapproval. This will help the turf owner understand what needs to be changed.',
+                  'Please provide a clear reason for disapproval. This will help the theatre owner understand what needs to be changed.',
                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                 ),
                 SizedBox(height: 16),
@@ -498,18 +491,18 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   try {
-                    setState(() { isLoadingTurfs = true; });
+                    setState(() { isLoadingTheatres = true; });
                     
-                    await _firestore.collection('turfs').doc(turfId).update({
-                      'turf_status': 'Disapproved',
+                    await _firestore.collection('movie_theatres').doc(theatreId).update({
+                      'theatre_status': 'Disapproved',
                       'rejectionReason': reasonController.text.trim(),
                       'rejectedAt': FieldValue.serverTimestamp(),
                       'rejectedBy': _auth.currentUser?.uid ?? 'admin',
                     });
                     
-                    await fetchTurfData();
+                    await fetchTheatreData();
                     Fluttertoast.showToast(
-                      msg: 'Turf disapproved. Owner will be notified with the reason.',
+                      msg: 'Theatre disapproved. Owner will be notified with the reason.',
                       backgroundColor: Colors.orange,
                       textColor: Colors.white,
                     );
@@ -517,12 +510,12 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                     Navigator.pop(context);
                   } catch (e) {
                     Fluttertoast.showToast(
-                      msg: 'Error disapproving turf: ${e.toString()}',
+                      msg: 'Error disapproving theatre: ${e.toString()}',
                       backgroundColor: Colors.red,
                       textColor: Colors.white,
                     );
                   } finally {
-                    setState(() { isLoadingTurfs = false; });
+                    setState(() { isLoadingTheatres = false; });
                   }
                 }
               },
@@ -724,10 +717,10 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+        final userDoc = await _firestore.collection('movie_users').doc(currentUser.uid).get();
         final adminData = userDoc.data();
         if (adminData != null) {
-          final customerDoc = await _firestore.collection('users').doc(userID).get();
+          final customerDoc = await _firestore.collection('movie_users').doc(userID).get();
           final customerData = customerDoc.data();
           String? razorpayId = customerData?['razorpayAccountId'];
           
@@ -763,7 +756,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                         ElevatedButton(
                           onPressed: () async {
                             if (rzpController.text.trim().startsWith('acc_')) {
-                              await _firestore.collection('users').doc(userID).update({
+                              await _firestore.collection('movie_users').doc(userID).update({
                                 'razorpayAccountId': rzpController.text.trim(),
                               });
                               Navigator.pop(ctx);
@@ -777,12 +770,12 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
                 );
               },
             );
-            final updatedDoc = await _firestore.collection('users').doc(userID).get();
+            final updatedDoc = await _firestore.collection('movie_users').doc(userID).get();
             razorpayId = updatedDoc.data()?['razorpayAccountId'];
           }
           
           if (razorpayId != null && razorpayId.toString().trim().startsWith('acc_')) {
-            await _firestore.collection('users').doc(userID).update({
+            await _firestore.collection('movie_users').doc(userID).update({
               'status': 'yes',
               'verifiedby': {
                 'id': currentUser.uid,
@@ -791,16 +784,16 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
               }
             });
             fetchUserData();
-            Fluttertoast.showToast(msg: 'User approved successfully!');
+            Fluttertoast.showToast(msg: 'Theatre owner approved successfully!');
           } else {
-            Fluttertoast.showToast(msg: 'Approval requires a valid Razorpay Account ID.');
+            Fluttertoast.showToast(msg: 'Theatre owner approval requires a valid Razorpay Account ID for payment processing.');
           }
         } else {
-          Fluttertoast.showToast(msg: 'Admin data not found');
+          Fluttertoast.showToast(msg: 'Admin verification data not found');
         }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Error approving user: $e');
+      Fluttertoast.showToast(msg: 'Error approving theatre owner: $e');
     }
   }
 
@@ -861,11 +854,11 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+        final userDoc = await _firestore.collection('movie_users').doc(currentUser.uid).get();
         final userData = userDoc.data();
 
         if (userData != null) {
-          await _firestore.collection('users').doc(userID).update({
+          await _firestore.collection('movie_users').doc(userID).update({
             'status': 'Disagree',
             'rejectionReason': reason,
             'verifiedby': {
@@ -876,13 +869,13 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
           });
 
           fetchUserData();
-          Fluttertoast.showToast(msg: 'User rejected successfully!');
+          Fluttertoast.showToast(msg: 'Theatre owner application rejected!');
         } else {
-          Fluttertoast.showToast(msg: 'User data not found');
+          Fluttertoast.showToast(msg: 'Theatre owner data not found');
         }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Error rejecting user: $e');
+      Fluttertoast.showToast(msg: 'Error rejecting theatre owner: $e');
     }
   }
 
@@ -895,7 +888,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.teal[600],
+        backgroundColor: Colors.red.shade800,
         title: Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
         centerTitle: true,
         elevation: 0,
@@ -912,16 +905,16 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
             ),
             Tab(
               icon: Icon(Icons.pending_actions),
-              text: 'Pending Turfs',
+              text: 'Pending Theatres',
             ),
             Tab(
               icon: Icon(Icons.verified),
-              text: 'Verified Turfs',
+              text: 'Verified Theatres',
             ),
           ],
           indicator: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Colors.teal[800],
+            color: Colors.red.shade900,
           ),
           labelColor: Colors.white,
           unselectedLabelColor: Colors.grey,
@@ -953,7 +946,7 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.teal[50]!, Colors.white],
+            colors: [Colors.red[50]!, Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -963,8 +956,8 @@ class _AdminControllersPageState extends State<AdminControllersPage> with Single
           children: [
             _buildUserList(notConfirmedUsers),
             _buildUserList(confirmedUsers),
-            _buildTurfList(pendingTurfs, pending: true),
-            _buildTurfList(verifiedTurfs, pending: false),
+            _buildTheatreList(pendingTheatres, pending: true),
+            _buildTheatreList(verifiedTheatres, pending: false),
           ],
         ),
       ),

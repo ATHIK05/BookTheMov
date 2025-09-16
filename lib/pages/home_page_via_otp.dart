@@ -49,7 +49,7 @@ class _HomePage1State extends State<HomePage1>
   }
 
   Future<void> _loadUserLikes() async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(_currentUserId).get();
+    final userDoc = await FirebaseFirestore.instance.collection('movie_users').doc(_currentUserId).get();
     final likes = userDoc.data()?['likes'] as Map<String, dynamic>? ?? {};
     setState(() {
       _likedTurfs = likes.keys.toSet();
@@ -927,7 +927,7 @@ class _HomePage1State extends State<HomePage1>
                 left: 12,
                 child: GestureDetector(
                   onTap: () async {
-                    final userRef = FirebaseFirestore.instance.collection('users').doc(_currentUserId);
+                    final userRef = FirebaseFirestore.instance.collection('movie_users').doc(_currentUserId);
                     final isLiked = _likedTurfs.contains(doc.id);
                     if (isLiked) {
                       await userRef.set({

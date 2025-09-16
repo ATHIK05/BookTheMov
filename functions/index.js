@@ -33,32 +33,32 @@ async function updatePayoutStatus(snap, status, reason) {
   }
 }
 
-// Function to update booking after successful transfer
-async function updateBookingAfterTransfer(snap, status, transferResp, ownerAccountId) {
+// Function to update movie booking after successful transfer
+async function updateMovieBookingAfterTransfer(snap, status, transferResp, ownerAccountId) {
   try {
     await snap.ref.update({
       payoutStatus: status,
       transferResponse: transferResp,
-      turfOwnerAccountId: ownerAccountId,
+      theatreOwnerAccountId: ownerAccountId,
       payoutMethod: 'Razorpay Route'
     });
   } catch (error) {
-    console.error('Error updating booking after transfer:', error);
+    console.error('Error updating movie booking after transfer:', error);
   }
 }
 
-// Function to resolve owner account ID from turf and user data
-async function resolveOwnerAccountId(turfId, bookingData) {
-  if (!turfId) return null;
+// Function to resolve theatre owner account ID from theatre and user data
+async function resolveTheatreOwnerAccountId(theatreId, bookingData) {
+  if (!theatreId) return null;
   
   try {
     const db = admin.firestore();
-    const turfDoc = await db.collection('turfs').doc(turfId).get();
+    const theatreDoc = await db.collection('movie_theatres').doc(theatreId).get();
     
-    if (!turfDoc.exists) return null;
+    if (!theatreDoc.exists) return null;
     
-    const turf = turfDoc.data();
-    const ownerId = turf.ownerId || bookingData.ownerId;
+    const theatre = theatreDoc.data();
+    const ownerId = theatre.ownerId || bookingData.ownerId;
     
     if (!ownerId) return null;
     
@@ -82,14 +82,14 @@ async function resolveOwnerAccountId(turfId, bookingData) {
     
     return null;
   } catch (error) {
-    console.error('Error resolving owner account ID:', error);
+    console.error('Error resolving theatre owner account ID:', error);
     return null;
   }
 }
 
 // Main function: triggered when a new booking is created
-exports.onBookingCreated = functions.firestore
-  .document('turfs/{turfId}/bookings/{bookingId}')
+exports.onMovieBookingCreated = functions.firestore
+  .document('movie_bookings/{bookingId}')
   .onCreate(async (snap, context) => {
     try {
       const data = snap.data();
@@ -108,12 +108,13 @@ exports.onBookingCreated = functions.firestore
         return;
       }
 
-      const totalAmount = parseFloat(data.amount) || 0;
-      let ownerAccountId = data.turfOwnerAccountId;
+      const totalAmount = parseFloat(data.totalAmount) || 0;
+      const actualTicketPrice = parseFloat(data.actualTicketPrice) || 0;
+      let ownerAccountId = data.theatreOwnerAccountId;
       const paymentId = data.razorpayPaymentId;
-      const turfId = context.params.turfId || data.turfId;
+      const theatreId = data.theatreId;
 
-      console.log(`Processing booking: ${context.params.bookingId}, Amount: ${totalAmount}, Turf: ${turfId}`);
+      console.log(`Processing booking: ${context.params.bookingId}, Amount: ${totalAmount}, Theatre: ${theatreId}`);
 
       // Guard clauses
       if (totalAmount <= 0) {
@@ -122,16 +123,16 @@ exports.onBookingCreated = functions.firestore
       }
 
       if (!ownerAccountId || ownerAccountId === 'owner_placeholder') {
-        // Try to resolve from turf -> users collection
+        // Try to resolve from theatre -> users collection
         try {
-          ownerAccountId = await resolveOwnerAccountId(turfId, data);
+          ownerAccountId = await resolveTheatreOwnerAccountId(theatreId, data);
         } catch (error) {
           await updatePayoutStatus(snap, 'failed', `Owner account resolution error: ${error.message}`);
           return;
         }
         
         if (!ownerAccountId) {
-          await updatePayoutStatus(snap, 'failed', 'Missing Razorpay connected account ID. Owner must add their Razorpay account ID to receive payments.');
+          await updatePayoutStatus(snap, 'failed', 'Missing Razorpay connected account ID. Theatre owner must add their Razorpay account ID to receive payments.');
           return;
         }
       }
@@ -142,20 +143,19 @@ exports.onBookingCreated = functions.firestore
       }
 
       if (!ownerAccountId.startsWith('acc_')) {
-        await updatePayoutStatus(snap, 'failed', 'Owner does not have a valid Razorpay connected account ID.');
+        await updatePayoutStatus(snap, 'failed', 'Theatre owner does not have a valid Razorpay connected account ID.');
         return;
       }
 
       // Calculate owner's share internally (confidential business logic)
-      const ownerShare = calculateOwnerShare(totalAmount);
+      const ownerShare = calculateTheatreOwnerShare(actualTicketPrice);
       const companyProfit = totalAmount - ownerShare;
-      console.log(`Total amount paid by user: ${totalAmount}`);
-      console.log(`Owner share (base amount): ${ownerShare}`);
+      console.log(`Total amount paid by customer: ${totalAmount}`);
+      console.log(`Theatre owner share (88% of ticket price): ${ownerShare}`);
       console.log(`Company keeps (profit + fees): ${companyProfit}`);
-      console.log(`Breakdown: Base=${ownerShare}, Profit+Fees=${companyProfit}`);
 
-      // Check if owner has Razorpay connected account or UPI details
-      const ownerPaymentMethod = await getOwnerPaymentMethod(ownerAccountId, turfId, data);
+      // Check if theatre owner has Razorpay connected account
+      const ownerPaymentMethod = await getTheatreOwnerPaymentMethod(ownerAccountId, theatreId, data);
       
       const client = getRazorpayClient();
       
@@ -163,17 +163,17 @@ exports.onBookingCreated = functions.firestore
         // Use Razorpay Route transfer
         await processRazorpayTransfer(client, paymentId, ownerShare, ownerPaymentMethod.accountId);
       } else {
-        throw new Error('No valid payment method found for owner');
+        throw new Error('No valid payment method found for theatre owner');
       }
 
       // Update booking with transfer details
-      await updateBookingAfterTransfer(snap, 'settled', null, ownerAccountId);
+      await updateMovieBookingAfterTransfer(snap, 'settled', null, ownerAccountId);
       
       // Save profit/owner share info in Firestore for tracking
       const db = admin.firestore();
-      await db.collection('booking_settlements').doc(context.params.bookingId).set({
+      await db.collection('movie_booking_settlements').doc(context.params.bookingId).set({
         booking_id: context.params.bookingId,
-        turf_id: turfId || null,
+        theatre_id: theatreId || null,
         total_paid: totalAmount,
         owner_share: ownerShare,
         platform_profit: companyProfit,
@@ -194,45 +194,20 @@ exports.onBookingCreated = functions.firestore
     }
   });
 
-// Returns the platform profit based on turf rate slabs
-function calculatePlatformProfit(turfRate) {
-  if (turfRate < 1000) {
-    // 15% profit for < 1000
-    return turfRate * 0.15;
-  } else if (turfRate <= 3000) {
-    // Fixed ₹110 profit for 1000-3000
-    return 110;
-  } else {
-    // Fixed ₹210 profit for > 3000
-    return 210;
-  }
+// Calculate theatre owner share (88% of actual ticket price)
+function calculateTheatreOwnerShare(actualTicketPrice) {
+  return actualTicketPrice; // Theatre owner gets 100% of base ticket price (not 88%)
 }
 
-// Returns the total amount to charge the customer so that owner gets full turfRate after all deductions
-function calculateTotalToCharge(turfRate) {
-  // Platform profit as per slab
-  const platformProfit = calculatePlatformProfit(turfRate);
-  // Razorpay fee: 2% + 18% GST = 2.36%
-  const razorpayFeePercent = 0.02 * 1.18; // 0.0236
-  // Total to charge = (turfRate + platformProfit) / (1 - fee%)
-  return (turfRate + platformProfit) / (1 - razorpayFeePercent);
-}
-
-// Always return the full turf rate as owner share
-function calculateOwnerShare(turfRate) {
-  return turfRate;
-}
-
-// Function to determine owner's payment method (Razorpay or UPI)
-async function getOwnerPaymentMethod(ownerAccountId, turfId, bookingData) {
-  // Only allow Razorpay Connected Account
+// Function to determine theatre owner's payment method (Razorpay only)
+async function getTheatreOwnerPaymentMethod(ownerAccountId, theatreId, bookingData) {
   if (ownerAccountId && ownerAccountId.startsWith('acc_')) {
     return {
       type: 'razorpay',
       accountId: ownerAccountId
     };
   }
-  throw new Error('No valid Razorpay connected account ID for owner.');
+  throw new Error('No valid Razorpay connected account ID for theatre owner.');
 }
 
 // Function to process Razorpay Route transfer
@@ -247,8 +222,8 @@ async function processRazorpayTransfer(client, paymentId, ownerShare, accountId)
           amount: amountInPaise,
           currency: 'INR',
           notes: {
-            purpose: 'Turf booking settlement - Base amount only',
-            note: 'Company profit and platform fees retained in merchant account'
+            purpose: 'Movie ticket booking settlement - 100% of base ticket price',
+            note: 'Platform fee (12%) collected separately from customer'
           }
         }
       ]
@@ -263,26 +238,30 @@ async function processRazorpayTransfer(client, paymentId, ownerShare, accountId)
   }
 }
 
-// Add callable function to create Razorpay order with transfer split
-exports.createRazorpayOrderWithTransfer = functions.https.onCall(async (data, context) => {
+// Add callable function to create Razorpay order with transfer split for movie bookings
+exports.createMovieBookingRazorpayOrder = functions.https.onCall(async (data, context) => {
   try {
-    const { totalAmount, ownerAccountId, bookingId, turfId, currency = 'INR' } = data;
-    if (!totalAmount || !ownerAccountId || !bookingId) {
+    const { actualTicketPrice, totalAmount, ownerAccountId, bookingId, theatreId, currency = 'INR' } = data;
+    if (!actualTicketPrice || !totalAmount || !ownerAccountId || !bookingId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
     }
     if (!ownerAccountId.startsWith('acc_')) {
-      throw new functions.https.HttpsError('failed-precondition', 'Owner Razorpay Account ID is invalid');
+      throw new functions.https.HttpsError('failed-precondition', 'Theatre Owner Razorpay Account ID is invalid');
     }
     const client = getRazorpayClient();
-    const ownerShare = calculateOwnerShare(totalAmount);
-    const profit = totalAmount - ownerShare;
+    
+    // actualTicketPrice = base ticket amount
+    // totalAmount = total amount customer pays (including platform fee)
+    const ownerShare = calculateTheatreOwnerShare(actualTicketPrice); // 100% of ticket price
+    const platformProfit = totalAmount - ownerShare; // Platform keeps 12% + fees
+    
     const order = await client.orders.create({
-      amount: Math.round(totalAmount * 100),
+      amount: Math.round(totalAmount * 100), // Customer pays the full amount
       currency,
       transfers: [
         {
           account: ownerAccountId,
-          amount: Math.round(ownerShare * 100),
+          amount: Math.round(ownerShare * 100), // Theatre owner gets 100% of ticket price
           currency,
           notes: {
             booking_id: bookingId,
@@ -293,17 +272,19 @@ exports.createRazorpayOrderWithTransfer = functions.https.onCall(async (data, co
       notes: {
         booking_id: bookingId,
         owner_share: ownerShare.toString(),
-        platform_profit: profit.toString()
+        platform_profit: platformProfit.toString(),
+        actual_ticket_price: actualTicketPrice.toString()
       }
     });
     // Save profit/owner share info in Firestore for tracking
     const db = admin.firestore();
-    await db.collection('razorpay_orders').doc(order.id).set({
+    await db.collection('movie_razorpay_orders').doc(order.id).set({
       booking_id: bookingId,
-      turf_id: turfId || null,
-      total_paid: totalAmount,
+      theatre_id: theatreId || null,
+      total_paid: totalAmount, // What customer paid
+      actual_ticket_price: actualTicketPrice, // Base ticket price
       owner_share: ownerShare,
-      platform_profit: profit,
+      platform_profit: platformProfit,
       razorpay_order_id: order.id,
       owner_account_id: ownerAccountId,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -311,11 +292,12 @@ exports.createRazorpayOrderWithTransfer = functions.https.onCall(async (data, co
     return {
       orderId: order.id,
       ownerShare,
-      profit,
+      platformProfit,
+      actualTicketPrice: actualTicketPrice,
       amount: totalAmount
     };
   } catch (error) {
-    console.error('Error creating Razorpay order with transfer:', error);
+    console.error('Error creating movie booking Razorpay order with transfer:', error);
     throw new functions.https.HttpsError('internal', error.message);
   }
 });
@@ -332,14 +314,14 @@ const TRANSPORTS = {
   User: nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'customersbtb@gmail.com',
+      user: 'customersbmb@gmail.com',
       pass: 'fofb axss moce zspb'
     }
   }),
   Other: nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'ownersbtb@gmail.com',
+      user: 'ownersbmb@gmail.com',
       pass: 'uqec eqiq ipti zbhp'
     }
   })
@@ -374,8 +356,8 @@ supportApp.post('/sendSupportAck', async (req, res) => {
     // 3. Choose transporter
     const transporter = userType === 'User' ? TRANSPORTS.User : TRANSPORTS.Other;
     const fromEmail = userType === 'User'
-      ? 'BookTheBiz Support <customersbtb@gmail.com>'
-      : 'BookTheBiz Support <bookthebiza@gmail.com>';
+      ? 'BookMyBiz Support <customersbmb@gmail.com>'
+      : 'BookMyBiz Support <ownersbmb@gmail.com>';
     // 4. Compose email
     let emailText = `Dear ${userName},\n\n`;
     if (message && message.trim() !== '') {
@@ -383,7 +365,7 @@ supportApp.post('/sendSupportAck', async (req, res) => {
     } else {
       emailText += `We have received your support ticket (Subject: ${subject}). Our team will respond within 3 business days to your registered email/phone number.\n\n`;
     }
-    emailText += `Thank you for contacting us!\n\n- BookTheBiz Support`;
+    emailText += `Thank you for contacting us!\n\n- BookMyBiz Support`;
     const mailOptions = {
       from: fromEmail,
       to: userEmail,
@@ -401,18 +383,18 @@ supportApp.post('/sendSupportAck', async (req, res) => {
 // Export the express app as a Cloud Function
 exports.supportApi = functions.https.onRequest(supportApp);
 
-// --- Booking Confirmation Email (Callable) ---
-exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, context) => {
+// --- Movie Booking Confirmation Email (Callable) ---
+exports.sendMovieBookingConfirmationEmail = functions.https.onCall(async (data, context) => {
   try {
     const {
       to,
       userName = 'Customer',
       bookingId = '',
-      turfName = '',
-      ground = '',
-      bookingDate = '',
-      slots = [],
-      totalHours = 0,
+      movieTitle = '',
+      theatreName = '',
+      showDate = '',
+      showTime = '',
+      selectedSeats = [],
       amount = 0,
       paymentMethod = 'Online'
     } = data || {};
@@ -424,7 +406,7 @@ exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, conte
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'customersbtb@gmail.com',
+        user: 'customersbmb@gmail.com',
         pass: 'fofb axss moce zspb'
       }
     });
@@ -433,9 +415,9 @@ exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, conte
     const appLogoPath = path.resolve(__dirname, 'assets', 'app.png');
     const companyLogoPath = path.resolve(__dirname, 'assets', 'logo.png');
 
-    const prettyDate = bookingDate || new Date().toISOString().slice(0, 10);
-    const slotList = Array.isArray(slots) ? slots.join(', ') : '';
-    const subject = `Booking Confirmed • ${turfName} • ${prettyDate}`;
+    const prettyDate = showDate || new Date().toISOString().slice(0, 10);
+    const seatsList = Array.isArray(selectedSeats) ? selectedSeats.join(', ') : '';
+    const subject = `Movie Booking Confirmed • ${movieTitle} • ${prettyDate}`;
 
     const html = `
 <!DOCTYPE html>
@@ -485,24 +467,24 @@ exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, conte
               <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${bookingId}</td>
             </tr>
             <tr>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Turf:</strong></td>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${turfName}</td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Movie:</strong></td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${movieTitle}</td>
             </tr>
             <tr>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Ground:</strong></td>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${ground}</td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Theatre:</strong></td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${theatreName}</td>
             </tr>
             <tr>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Date:</strong></td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Show Date:</strong></td>
               <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${prettyDate}</td>
             </tr>
             <tr>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Time Slot(s):</strong></td>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${slotList}</td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Show Time:</strong></td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${showTime}</td>
             </tr>
             <tr>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Total Hours:</strong></td>
-              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${Number(totalHours || 0).toFixed(0)}</td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Selected Seats:</strong></td>
+              <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;">${seatsList}</td>
             </tr>
             <tr>
               <td style="padding:10px 0; border-bottom:1px solid #e0e0e0;"><strong>Amount Paid:</strong></td>
@@ -519,7 +501,7 @@ exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, conte
       <tr>
         <td style="background-color:#f9fafb; padding:15px 20px; text-align:center; font-size:12px; color:#6b7280;">
           If you have questions, reply to this email or contact support.<br>
-          © ${new Date().getFullYear()} BookTheBiz • All rights reserved
+          © ${new Date().getFullYear()} BookMyBiz • All rights reserved
         </td>
       </tr>
     </table>
@@ -530,7 +512,7 @@ exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, conte
 </html>`;
 
     const mailOptions = {
-      from: 'BookTheBiz <customersbtb@gmail.com>',
+      from: 'BookMyBiz <customersbmb@gmail.com>',
       to,
       subject,
       html,
@@ -543,7 +525,7 @@ exports.sendBookingConfirmationEmail = functions.https.onCall(async (data, conte
     const info = await transporter.sendMail(mailOptions);
     return { ok: true, id: info.messageId };
   } catch (error) {
-    console.error('sendBookingConfirmationEmail error:', error);
+    console.error('sendMovieBookingConfirmationEmail error:', error);
     throw new functions.https.HttpsError('internal', error.message || 'Failed to send email');
   }
 });
@@ -611,14 +593,14 @@ async function sendNotificationToAdmin(title, body, data = {}) {
   }
 }
 
-// Function to send notification to turf owner
-async function sendNotificationToTurfOwner(ownerId, title, body, data = {}) {
+// Function to send notification to theatre owner
+async function sendNotificationToTheatreOwner(ownerId, title, body, data = {}) {
   try {
-    // Get turf owner document to find their FCM token
+    // Get theatre owner document to find their FCM token
     const ownerDoc = await admin.firestore().collection('users').doc(ownerId).get();
     
     if (!ownerDoc.exists) {
-      console.log('Turf owner not found:', ownerId);
+      console.log('Theatre owner not found:', ownerId);
       return;
     }
 
@@ -626,7 +608,7 @@ async function sendNotificationToTurfOwner(ownerId, title, body, data = {}) {
     const fcmToken = ownerData.fcmToken;
 
     if (!fcmToken) {
-      console.log('Turf owner FCM token not found:', ownerId);
+      console.log('Theatre owner FCM token not found:', ownerId);
       return;
     }
 
@@ -642,7 +624,7 @@ async function sendNotificationToTurfOwner(ownerId, title, body, data = {}) {
       token: fcmToken,
       android: {
         notification: {
-          channel_id: 'turf_status_channel',
+          channel_id: 'theatre_status_channel',
           priority: 'high',
           default_sound: true,
           default_vibrate_timings: true,
@@ -660,89 +642,89 @@ async function sendNotificationToTurfOwner(ownerId, title, body, data = {}) {
     };
 
     const response = await admin.messaging().send(message);
-    console.log('Successfully sent notification to turf owner:', response);
+    console.log('Successfully sent notification to theatre owner:', response);
     return response;
   } catch (error) {
-    console.error('Error sending notification to turf owner:', error);
+    console.error('Error sending notification to theatre owner:', error);
     throw error;
   }
 }
 
-// Function to handle turf approval
-exports.onTurfApproved = functions.firestore
-  .document('turfs/{turfId}')
+// Function to handle theatre approval
+exports.onTheatreApproved = functions.firestore
+  .document('movie_theatres/{theatreId}')
   .onUpdate(async (change, context) => {
     try {
       const beforeData = change.before.data();
       const afterData = change.after.data();
       
       // Check if status changed from 'Not Verified' to 'Verified'
-      if (beforeData.turf_status === 'Not Verified' && afterData.turf_status === 'Verified') {
+      if (beforeData.theatre_status === 'Not Verified' && afterData.theatre_status === 'Verified') {
         const ownerId = afterData.ownerId;
-        const turfName = afterData.name || 'Your turf';
+        const theatreName = afterData.name || 'Your theatre';
         
         if (ownerId) {
-          await sendNotificationToTurfOwner(
+          await sendNotificationToTheatreOwner(
             ownerId,
-            'Turf Approved! 🎉',
-            `Congratulations! Your turf "${turfName}" has been approved and is now visible to users.`,
+            'Theatre Approved! 🎉',
+            `Congratulations! Your theatre "${theatreName}" has been approved and is now visible to users.`,
             {
-              type: 'turf_approved',
-              turfId: context.params.turfId,
-              turfName: turfName,
+              type: 'theatre_approved',
+              theatreId: context.params.theatreId,
+              theatreName: theatreName,
               timestamp: new Date().toISOString(),
             }
           );
-          console.log('Turf approval notification sent to owner:', ownerId);
+          console.log('Theatre approval notification sent to owner:', ownerId);
         }
       }
     } catch (error) {
-      console.error('Error in onTurfApproved:', error);
+      console.error('Error in onTheatreApproved:', error);
     }
   });
 
-// Function to handle turf rejection
-exports.onTurfRejected = functions.firestore
-  .document('turfs/{turfId}')
+// Function to handle theatre rejection
+exports.onTheatreRejected = functions.firestore
+  .document('movie_theatres/{theatreId}')
   .onUpdate(async (change, context) => {
     try {
       const beforeData = change.before.data();
       const afterData = change.after.data();
       
       // Check if status changed from 'Not Verified' to 'Disapproved'
-      if (beforeData.turf_status === 'Not Verified' && afterData.turf_status === 'Disapproved') {
+      if (beforeData.theatre_status === 'Not Verified' && afterData.theatre_status === 'Disapproved') {
         const ownerId = afterData.ownerId;
-        const turfName = afterData.name || 'Your turf';
+        const theatreName = afterData.name || 'Your theatre';
         const rejectionReason = afterData.rejectionReason || 'No reason provided';
         
         if (ownerId) {
-          await sendNotificationToTurfOwner(
+          await sendNotificationToTheatreOwner(
             ownerId,
-            'Turf Review Update',
-            `Your turf "${turfName}" requires changes. Please review the feedback and resubmit.`,
+            'Theatre Review Update',
+            `Your theatre "${theatreName}" requires changes. Please review the feedback and resubmit.`,
             {
-              type: 'turf_rejected',
-              turfId: context.params.turfId,
-              turfName: turfName,
+              type: 'theatre_rejected',
+              theatreId: context.params.theatreId,
+              theatreName: theatreName,
               rejectionReason: rejectionReason,
               timestamp: new Date().toISOString(),
             }
           );
-          console.log('Turf rejection notification sent to owner:', ownerId);
+          console.log('Theatre rejection notification sent to owner:', ownerId);
         }
       }
     } catch (error) {
-      console.error('Error in onTurfRejected:', error);
+      console.error('Error in onTheatreRejected:', error);
     }
   });
 
-exports.onTurfCreated = functions.firestore
-  .document('turfs/{turfId}')
+exports.onTheatreCreated = functions.firestore
+  .document('movie_theatres/{theatreId}')
   .onCreate(async (snap, context) => {
     try {
-      const turfData = snap.data();
-      const ownerId = turfData.ownerId;
-      let ownerName = turfData.name || 'A Turf Owner';
+      const theatreData = snap.data();
+      const ownerId = theatreData.ownerId;
+      let ownerName = theatreData.name || 'A Theatre Owner';
 
       // Optionally fetch more owner details if needed
       if (ownerId) {
@@ -754,19 +736,19 @@ exports.onTurfCreated = functions.firestore
       }
 
       await sendNotificationToAdmin(
-        'New Turf Added',
-        `${ownerName} added a new turf, kindly review it`,
+        'New Theatre Added',
+        `${ownerName} added a new theatre, kindly review it`,
         {
-          type: 'turf_added',
-          turfId: context.params.turfId,
+          type: 'theatre_added',
+          theatreId: context.params.theatreId,
           ownerId: ownerId,
           ownerName: ownerName,
           timestamp: new Date().toISOString(),
         }
       );
-      console.log('Admin notified for new turf:', context.params.turfId);
+      console.log('Admin notified for new theatre:', context.params.theatreId);
     } catch (error) {
-      console.error('Error notifying admin for new turf:', error);
+      console.error('Error notifying admin for new theatre:', error);
     }
   });
 // Function to send notification when user submits verification details
@@ -806,3 +788,341 @@ exports.onUserVerificationSubmitted = functions.firestore
       console.error('Error in onUserVerificationSubmitted:', error);
     }
   });
+
+// Function to handle movie booking refund request creation
+exports.createMovieBookingRefundRequest = functions.https.onCall(async (data, context) => {
+  try {
+    const {
+      bookingId,
+      userId,
+      theatreId,
+      amount,
+      paymentId,
+      reason = 'User requested cancellation',
+      showDate,
+      movieTitle,
+      theatreName,
+      selectedSeats
+    } = data;
+
+    if (!bookingId || !userId || !amount || !paymentId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
+    }
+
+    const db = admin.firestore();
+    
+    // Get base amount from booking data
+    const bookingDoc = await db.collection('movie_bookings').doc(bookingId).get();
+    const bookingData = bookingDoc.exists ? bookingDoc.data() : {};
+    const actualTicketPrice = bookingData.actualTicketPrice || (parseFloat(amount) * 0.88); // 88% for theatre owner
+    
+    // Create refund request document
+    const refundRequest = {
+      bookingId,
+      userId,
+      theatreId,
+      amount: parseFloat(amount),
+      actualTicketPrice: actualTicketPrice,
+      paymentId,
+      reason,
+      status: 'pending', // pending, approved, rejected, processed
+      showDate,
+      movieTitle,
+      theatreName,
+      selectedSeats: selectedSeats || [],
+      requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+      processedAt: null,
+      refundId: null,
+      adminNotes: '',
+      createdBy: 'user'
+    };
+
+    const refundDoc = await db.collection('refund_requests').add(refundRequest);
+    
+    // Get user details for notification
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const userName = userData.name || 'User';
+
+    // Send notification to admin
+    await sendNotificationToAdmin(
+      'New Refund Request',
+      `${userName} has requested a refund of ₹${amount} for movie booking cancellation`,
+      {
+        type: 'movie_refund_request',
+        refundRequestId: refundDoc.id,
+        bookingId,
+        userId,
+        amount: parseFloat(amount),
+        userName,
+        timestamp: new Date().toISOString(),
+      }
+    );
+
+    // Update booking status to 'cancelled'
+    await db.collection('movie_bookings').doc(bookingId).update({
+      status: 'cancelled',
+      refundRequestId: refundDoc.id,
+      cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { 
+      success: true, 
+      refundRequestId: refundDoc.id,
+      message: 'BookMyBiz movie booking refund request submitted successfully. Admin will review and process your refund within 24-48 hours.'
+    };
+
+  } catch (error) {
+    console.error('Error creating refund request:', error);
+    throw new functions.https.HttpsError('internal', error.message);
+  }
+});
+
+// Function to process movie booking refund (admin approval)
+exports.processMovieBookingRefund = functions.https.onCall(async (data, context) => {
+  try {
+    const { refundRequestId, action, adminNotes = '' } = data; // action: 'approve' or 'reject'
+    
+    if (!refundRequestId || !action) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
+    }
+
+    const db = admin.firestore();
+    const refundDoc = await db.collection('refund_requests').doc(refundRequestId).get();
+    
+    if (!refundDoc.exists) {
+      throw new functions.https.HttpsError('not-found', 'Refund request not found');
+    }
+
+    const refundData = refundDoc.data();
+    
+    if (refundData.status !== 'pending') {
+      throw new functions.https.HttpsError('failed-precondition', 'Refund request already processed');
+    }
+
+    if (action === 'reject') {
+      // Simply update status to rejected
+      await refundDoc.ref.update({
+        status: 'rejected',
+        adminNotes,
+        processedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Notify user about rejection
+      await sendNotificationToUser(refundData.userId, 
+        'Refund Request Rejected',
+        `Your refund request has been rejected. ${adminNotes || 'Please contact support for more details.'}`,
+        {
+          type: 'refund_rejected',
+          refundRequestId,
+          bookingId: refundData.bookingId
+        }
+      );
+
+      return { success: true, message: 'Refund request rejected' };
+    }
+
+    if (action === 'approve') {
+      // Process refund with theatre owner recovery
+      const client = getRazorpayClient();
+      const totalAmount = refundData.amount;
+      
+      try {
+        // Calculate amounts
+        const actualTicketPrice = refundData.actualTicketPrice || (totalAmount / 1.12); // Base ticket price (total/1.12)
+        const platformAmount = totalAmount - actualTicketPrice;
+        
+        console.log(`Refund breakdown: Total=${totalAmount}, TicketPrice=${actualTicketPrice}, Platform=${platformAmount}`);
+        
+        // Step 1: Try to recover ticket amount from theatre owner
+        let theatreOwnerRefunded = false;
+        let theatreOwnerRefundId = null;
+        
+        try {
+          // Get theatre owner's Razorpay account ID
+          const theatreDoc = await db.collection('movie_theatres').doc(refundData.theatreId).get();
+          if (theatreDoc.exists) {
+            const theatreData = theatreDoc.data();
+            const ownerId = theatreData.ownerId;
+            
+            if (ownerId) {
+              const ownerDoc = await db.collection('users').doc(ownerId).get();
+              if (ownerDoc.exists) {
+                const ownerData = ownerDoc.data();
+                const ownerAccountId = ownerData.razorpayAccountId;
+                
+                if (ownerAccountId && ownerAccountId.startsWith('acc_')) {
+                  // Create a transfer from theatre owner to platform (reverse transfer)
+                  const reverseTransfer = await client.transfers.create({
+                    amount: Math.round(actualTicketPrice * 100), // Convert to paise
+                    currency: 'INR',
+                    source: ownerAccountId,
+                    destination: 'acc_merchant', // Your merchant account
+                    notes: {
+                      purpose: 'Refund recovery for movie booking cancellation',
+                      booking_id: refundData.bookingId,
+                      refund_request_id: refundRequestId
+                    }
+                  });
+                  
+                  theatreOwnerRefunded = true;
+                  theatreOwnerRefundId = reverseTransfer.id;
+                  console.log(`Successfully recovered ₹${actualTicketPrice} from theatre owner`);
+                }
+              }
+            }
+          }
+        } catch (theatreOwnerError) {
+          console.error('Failed to recover from theatre owner:', theatreOwnerError);
+          // Continue with platform-only refund
+        }
+        
+        // Step 2: Process refund to user
+        const refundAmount = Math.round(totalAmount * 100); // Full amount in paise
+        const refund = await client.payment.refund(refundData.paymentId, {
+          amount: refundAmount,
+          notes: {
+            reason: refundData.reason,
+            booking_id: refundData.bookingId,
+            refund_request_id: refundRequestId,
+            admin_notes: adminNotes,
+            theatre_owner_recovered: theatreOwnerRefunded,
+            theatre_owner_refund_id: theatreOwnerRefundId
+          }
+        });
+
+        // Update refund request with details
+        await refundDoc.ref.update({
+          status: 'processed',
+          refundId: refund.id,
+          razorpayRefundId: refund.id,
+          refundStatus: refund.status,
+          adminNotes,
+          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+          refundBreakdown: {
+            totalAmount: totalAmount,
+            actualTicketPrice: actualTicketPrice,
+            platformAmount: platformAmount,
+            theatreOwnerRecovered: theatreOwnerRefunded,
+            theatreOwnerRefundId: theatreOwnerRefundId
+          }
+        });
+
+        // Update booking status
+        await db.collection('movie_bookings').doc(refundData.bookingId).update({
+          refundStatus: 'processed',
+          refundId: refund.id,
+          refundedAt: admin.firestore.FieldValue.serverTimestamp(),
+          refundBreakdown: {
+            totalAmount: totalAmount,
+            actualTicketPrice: actualTicketPrice,
+            platformAmount: platformAmount,
+            theatreOwnerRecovered: theatreOwnerRefunded
+          }
+        });
+
+        // Notify user about successful refund
+        const refundMessage = theatreOwnerRefunded 
+          ? `Your refund of ₹${totalAmount} has been processed. Ticket amount (₹${actualTicketPrice}) recovered from theatre owner, platform fees (₹${platformAmount}) refunded by platform.`
+          : `Your refund of ₹${totalAmount} has been processed and will reflect in your account within 5-7 business days.`;
+          
+        await sendNotificationToUser(refundData.userId,
+          'Refund Processed Successfully',
+          refundMessage,
+          {
+            type: 'movie_refund_processed',
+            refundRequestId,
+            bookingId: refundData.bookingId,
+            amount: totalAmount,
+            refundId: refund.id,
+            theatreOwnerRecovered: theatreOwnerRefunded
+          }
+        );
+
+        return { 
+          success: true, 
+          refundId: refund.id,
+          message: 'Refund processed successfully',
+          refundBreakdown: {
+            totalAmount: totalAmount,
+            actualTicketPrice: actualTicketPrice,
+            platformAmount: platformAmount,
+            theatreOwnerRecovered: theatreOwnerRefunded
+          }
+        };
+
+      } catch (razorpayError) {
+        console.error('Razorpay refund failed:', razorpayError);
+        
+        // Update status to failed
+        await refundDoc.ref.update({
+          status: 'failed',
+          adminNotes: `Razorpay refund failed: ${razorpayError.message}`,
+          processedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        throw new functions.https.HttpsError('internal', `Refund processing failed: ${razorpayError.message}`);
+      }
+    }
+
+  } catch (error) {
+    console.error('Error processing refund:', error);
+    throw new functions.https.HttpsError('internal', error.message);
+  }
+});
+
+// Function to send notification to user
+async function sendNotificationToUser(userId, title, body, data = {}) {
+  try {
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      console.log('User not found:', userId);
+      return;
+    }
+
+    const userData = userDoc.data();
+    const fcmToken = userData.fcmToken;
+
+    if (!fcmToken) {
+      console.log('User FCM token not found:', userId);
+      return;
+    }
+
+    const message = {
+      notification: {
+        title: title,
+        body: body,
+      },
+      data: {
+        ...data,
+        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+      },
+      token: fcmToken,
+      android: {
+        notification: {
+          channel_id: 'movie_refund_channel',
+          priority: 'high',
+          default_sound: true,
+          default_vibrate_timings: true,
+          icon: 'app',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+          },
+        },
+      },
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log('Successfully sent notification to user:', response);
+    return response;
+  } catch (error) {
+    console.error('Error sending notification to user:', error);
+    throw error;
+  }
+}

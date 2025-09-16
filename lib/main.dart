@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:odp/pages/StartPage.dart';
-import 'package:odp/pages/Turf%20owner/Main%20Func/owner_home.dart';
+import 'package:odp/pages/Theatre%20owner/Main%20Func/owner_home.dart';
 import 'package:odp/pages/admincontroller.dart';
 import 'package:odp/pages/home_page.dart';
 import 'package:odp/pages/login.dart';
-import 'package:odp/pages/view_turfs_guest.dart';
+import 'package:odp/pages/view_movies_guest.dart';
 import 'package:odp/services/fcm_service.dart';
 // Make sure to import or define SignupPage() in your project.
 import 'firebase_options.dart';
@@ -36,15 +36,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BookTheBiz',
+      title: 'BookMyBiz',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
+        primaryColor: Colors.red[900],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.red[900]!,
+          brightness: Brightness.light,
+        ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       routes: {
         '/login': (context) => LoginApp(),
-        '/guest': (context) => ViewTurfsGuestPage(),
+        '/guest': (context) => ViewMoviesGuestPage(),
         // ...other routes...
       },
       home: SplashScreen(), // Start with splash screen
@@ -147,7 +152,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
           ),
           child: Center(
-            child: Icon(Icons.sports_soccer, size: 80, color: Colors.white),
+            child: Icon(Icons.movie, size: 80, color: Colors.white),
           ),
         ),
       ),
@@ -164,7 +169,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           end: Alignment.bottomRight,
         ).createShader(bounds),
         child: Text(
-          'BookTheBiz',
+          'BookMyBiz',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -178,8 +183,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.teal[700],
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.red[900]!, Colors.red[700]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -189,6 +202,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             if (_isInitialized) _buildAppName(),
           ],
         ),
+      ),
       ),
     );
   }
@@ -208,7 +222,7 @@ class AuthWrapper extends StatelessWidget {
       }
       // Otherwise, check user type from Firestore
       return FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+        future: FirebaseFirestore.instance.collection('movie_users').doc(user.uid).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // You can reuse the splash screen or show a loader
@@ -219,7 +233,7 @@ class AuthWrapper extends StatelessWidget {
           }
           if (snapshot.hasData && snapshot.data != null) {
             var userType = snapshot.data!.get('userType');
-            if (userType == 'Turf Owner') {
+            if (userType == 'Theatre Owner') {
               return HomePage2(user: user);
             } else {
               return HomePage1(user: user);

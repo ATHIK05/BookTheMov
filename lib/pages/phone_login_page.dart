@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_page.dart';
-import 'package:odp/pages/Turf owner/Main Func/owner_home.dart';
+import 'package:odp/pages/Theatre%20owner/Main%20Func/owner_home.dart';
 import 'dart:async';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:odp/pages/sign_up_page.dart';
@@ -115,7 +115,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
 
     try {
       // Check if mobile number exists in Firestore
-      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
+      final usersSnapshot = await FirebaseFirestore.instance.collection('movie_users').get();
       bool mobileExists = false;
       
       for (var doc in usersSnapshot.docs) {
@@ -276,7 +276,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
     }
 
     // Fetch user document from Firestore using UID
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final userDoc = await FirebaseFirestore.instance.collection('movie_users').doc(user.uid).get();
     setState(() => _isLoading = false);
 
     if (!userDoc.exists) {
@@ -288,7 +288,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
 
     final userType = userDoc['userType'] ?? 'User';
 
-    if (userType == 'Turf Owner') {
+    if (userType == 'Theatre Owner') {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -334,13 +334,13 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.teal.withOpacity(0.08),
+            color: Colors.red.withOpacity(0.08),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: _focusNodes[index].hasFocus ? Colors.teal.shade700 : Colors.teal.shade200,
+          color: _focusNodes[index].hasFocus ? Colors.red.shade700 : Colors.red.shade200,
           width: 2,
         ),
       ),
@@ -350,7 +350,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
         maxLength: 1,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.teal.shade900),
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red.shade900),
         decoration: InputDecoration(
           counterText: '',
           border: InputBorder.none,
@@ -376,7 +376,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
             duration: Duration(milliseconds: 600),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF0C6157), Color(0xFF192028), Colors.teal.shade100],
+                colors: [Colors.red.shade800, Colors.red.shade600, Colors.red.shade100],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -419,13 +419,13 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
                                 ? Column(
                                     key: ValueKey('otp'),
                                     children: [
-                                Icon(Icons.lock_clock, color: Colors.teal.shade400, size: 38),
+                                Icon(Icons.lock_clock, color: Colors.red.shade400, size: 38),
                                 SizedBox(height: 10),
                                 Text(
                                   'Enter OTP sent to',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.teal.shade700,
+                                    color: Colors.red.shade700,
                                     fontSize: 17,
                                   ),
                                 ),
@@ -433,7 +433,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
               Text(
                                   '+91 ${_phoneController.text.trim()}',
                 style: TextStyle(
-                                    color: Colors.teal.shade900,
+                                    color: Colors.red.shade900,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
                                     letterSpacing: 1.1,
@@ -458,8 +458,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
                                         }
                                       },
                                       decoration: UnderlineDecoration(
-                                        textStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.teal.shade900),
-                                        colorBuilder: FixedColorBuilder(Colors.teal.shade400),
+                                        textStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red.shade900),
+                                        colorBuilder: FixedColorBuilder(Colors.red.shade400),
                                         bgColorBuilder: FixedColorBuilder(Colors.white),
                                         gapSpace: 12,
                                         lineHeight: 2,
@@ -576,13 +576,13 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
                           : Column(
                               key: ValueKey('phone'),
                               children: [
-                                Icon(Icons.phone_android, color: Colors.teal.shade400, size: 38),
+                                Icon(Icons.phone_android, color: Colors.red.shade400, size: 38),
                                 SizedBox(height: 10),
                                 Text(
                                   'Enter your phone number',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.teal.shade700,
+                                    color: Colors.red.shade700,
                                     fontSize: 18,
                                   ),
                                 ),
@@ -590,19 +590,19 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
                                 TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                                  style: TextStyle(fontSize: 18, color: Colors.teal.shade900, fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontSize: 18, color: Colors.red.shade900, fontWeight: FontWeight.w600),
                       decoration: InputDecoration(
                         prefixText: '+91 ',
                         labelText: 'Enter only 10 digits',
-                                    labelStyle: TextStyle(color: Colors.teal.shade700),
+                                    labelStyle: TextStyle(color: Colors.red.shade700),
                         filled: true,
-                        fillColor: Colors.teal[50],
+                        fillColor: Colors.red[50],
                         border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(18),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(18),
-                                      borderSide: BorderSide(color: Colors.teal.shade700, width: 2),
+                                      borderSide: BorderSide(color: Colors.red.shade700, width: 2),
                         ),
                       ),
                     ),
@@ -612,7 +612,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
                 child: ElevatedButton(
                                     onPressed: _isLoading ? null : _sendOTP,
                   style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.teal.shade600,
+                                      backgroundColor: Colors.red.shade600,
                     foregroundColor: Colors.white,
                                       padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(

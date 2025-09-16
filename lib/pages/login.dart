@@ -4,11 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:odp/pages/Turf%20owner/Main%20Func/owner_home.dart';
+import 'package:odp/pages/Theatre%20owner/Main%20Func/owner_home.dart';
 import 'package:odp/pages/admincontroller.dart';
 import 'package:odp/pages/home_page.dart';
 import 'package:odp/pages/sign_up_page.dart';
-import 'package:odp/pages/view_turfs_guest.dart'; 
+import 'package:odp/pages/view_movies_guest.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'phone_login_page.dart'; // Create this file as shown below
 
@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginApp> {
 
       if (userCredential.user != null) {
         final FirebaseFirestore firestore = FirebaseFirestore.instance;
-        final DocumentReference userRef = firestore.collection('users').doc(userCredential.user!.uid);
+        final DocumentReference userRef = firestore.collection('movie_users').doc(userCredential.user!.uid);
         final userData = await userRef.get().then((ds) => ds.data() as Map<String, dynamic>?);
 
         if (userData != null) {
@@ -185,7 +185,7 @@ class _LoginPageState extends State<LoginApp> {
               context,
               MaterialPageRoute(builder: (context) => AdminControllersPage()),
             );
-          } else if (userType == 'Turf Owner') {
+          } else if (userType == 'Theatre Owner') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => HomePage2(user: FirebaseAuth.instance.currentUser)),
@@ -307,7 +307,7 @@ class _LoginPageState extends State<LoginApp> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK', style: TextStyle(color: Colors.teal.shade800)),
+            child: Text('OK', style: TextStyle(color: Colors.red.shade800)),
           ),
         ],
       ),
@@ -382,7 +382,7 @@ class _LoginPageState extends State<LoginApp> {
                   child: Text(
                     'Forgot Password?',
                     style: TextStyle(
-                      color: Colors.teal.shade800,
+                      color: Colors.red.shade800,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
                     ),
@@ -394,7 +394,7 @@ class _LoginPageState extends State<LoginApp> {
               ElevatedButton(
                 onPressed: _loading ? null : _login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal.shade600,
+                  backgroundColor: Colors.red.shade600,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -417,7 +417,7 @@ class _LoginPageState extends State<LoginApp> {
 
               // --- Add this for OTP Login ---
               OutlinedButton.icon(
-                icon: Icon(Icons.phone_android, color: Colors.teal.shade600),
+                icon: Icon(Icons.phone_android, color: Colors.red.shade600),
                 label: Text(
                   'Login with OTP',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -430,8 +430,8 @@ class _LoginPageState extends State<LoginApp> {
                   );
                 },
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.teal.shade600, width: 2),
-                  foregroundColor: Colors.teal.shade600,
+                  side: BorderSide(color: Colors.red.shade600, width: 2),
+                  foregroundColor: Colors.red.shade600,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -449,8 +449,8 @@ class _LoginPageState extends State<LoginApp> {
                   );
                 },
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.teal.shade600, width: 2),
-                  foregroundColor: Colors.teal.shade600,
+                  side: BorderSide(color: Colors.red.shade600, width: 2),
+                  foregroundColor: Colors.red.shade600,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -468,13 +468,13 @@ class _LoginPageState extends State<LoginApp> {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => ViewTurfsGuestPage()),
+                    MaterialPageRoute(builder: (context) => const ViewMoviesGuestPage()),
                   );
                 },
                 child: Text(
                   'Continue without Login',
                   style: TextStyle(
-                    color: Colors.teal.shade800,
+                    color: Colors.red.shade800,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     decoration: TextDecoration.underline,
@@ -496,18 +496,18 @@ class _LoginPageState extends State<LoginApp> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.teal.shade50,
+        color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(10),
       ),
       child: TextField(
         controller: controller,
         obscureText: isObscure,
-        style: TextStyle(color: Colors.teal.shade900),
-        cursorColor: Colors.teal.shade900,
+        style: TextStyle(color: Colors.red.shade900),
+        cursorColor: Colors.red.shade900,
         decoration: InputDecoration(
-          prefixIcon: Icon(iconData, color: Colors.teal.shade800),
+          prefixIcon: Icon(iconData, color: Colors.red.shade800),
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.teal.shade400),
+          hintStyle: TextStyle(color: Colors.red.shade400),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 14),

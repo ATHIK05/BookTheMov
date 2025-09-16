@@ -317,7 +317,7 @@ class _AnimatedTicketCardState extends State<_AnimatedTicketCard> with SingleTic
                                     Text('Response sent and ticket closed!'),
                                   ],
                                 ),
-                                backgroundColor: Colors.teal[700],
+                                backgroundColor: Colors.red.shade700,
                               ),
                             );
                           } else {
@@ -335,7 +335,7 @@ class _AnimatedTicketCardState extends State<_AnimatedTicketCard> with SingleTic
                             : Icon(Icons.send, color: Colors.white),
                         label: Text('Send Response', style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal[700],
+                          backgroundColor: Colors.red.shade700,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 6,
                         ),

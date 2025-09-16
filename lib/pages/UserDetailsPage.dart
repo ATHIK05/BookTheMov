@@ -42,8 +42,8 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Details',style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
-        backgroundColor: Colors.teal[600],
+        title: Text('Theatre Owner Details',style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
+        backgroundColor: Colors.red.shade800,
         elevation: 0,
         actions: [
           if (!isConfirmed)
@@ -63,7 +63,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.teal[50]!, Colors.white],
+            colors: [Colors.red[50]!, Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -81,7 +81,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.teal[400]!, Colors.teal[600]!],
+                      colors: [Colors.red[400]!, Colors.red[600]!],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -223,9 +223,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                         Container(
                           padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                           decoration: BoxDecoration(
-                            color: Colors.teal.shade50,
+                            color: Colors.red.shade50,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.teal.shade100),
+                            border: Border.all(color: Colors.red.shade100),
                           ),
                           child: Row(
                             children: [
@@ -247,7 +247,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                                     Text(
                                       'Tap to view the full document',
                                       style: TextStyle(
-                                        color: Colors.teal.shade700,
+                                        color: Colors.red.shade700,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -270,7 +270,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                                 icon: Icon(Icons.open_in_new, color: Colors.white),
                                 label: Text('View', style: TextStyle(color: Colors.white)),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
+                                  backgroundColor: Colors.red.shade600,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                               ),
@@ -307,7 +307,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                                       ),
                                     ),
                                   ),
-                                  Icon(Icons.open_in_new, color: Colors.teal, size: 20),
+                                  Icon(Icons.open_in_new, color: Colors.red.shade600, size: 20),
                                 ],
                               ),
                             ),
@@ -451,10 +451,10 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+        final userDoc = await _firestore.collection('movie_users').doc(currentUser.uid).get();
         final adminData = userDoc.data();
         if (adminData != null) {
-          final customerDoc = await _firestore.collection('users').doc(userID).get();
+          final customerDoc = await _firestore.collection('movie_users').doc(userID).get();
           final customerData = customerDoc.data();
           String? razorpayId = customerData?['razorpayAccountId'];
           
@@ -490,7 +490,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                         ElevatedButton(
                           onPressed: () async {
                             if (rzpController.text.trim().startsWith('acc_')) {
-                              await _firestore.collection('users').doc(userID).update({
+                              await _firestore.collection('movie_users').doc(userID).update({
                                 'razorpayAccountId': rzpController.text.trim(),
                               });
                               Navigator.pop(ctx);
@@ -504,12 +504,12 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                 );
               },
             );
-            final updatedDoc = await _firestore.collection('users').doc(userID).get();
+            final updatedDoc = await _firestore.collection('movie_users').doc(userID).get();
             razorpayId = updatedDoc.data()?['razorpayAccountId'];
           }
           
           if (razorpayId != null && razorpayId.toString().trim().startsWith('acc_')) {
-            await _firestore.collection('users').doc(userID).update({
+            await _firestore.collection('movie_users').doc(userID).update({
               'status': 'yes',
               'verifiedby': {
                 'id': currentUser.uid,
@@ -517,17 +517,17 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                 'mobile': adminData['mobile'],
               }
             });
-            Fluttertoast.showToast(msg: 'User approved successfully!');
+            Fluttertoast.showToast(msg: 'Theatre owner approved successfully!');
             Navigator.pop(context);
           } else {
-            Fluttertoast.showToast(msg: 'Approval requires a valid Razorpay Account ID.');
+            Fluttertoast.showToast(msg: 'Theatre owner approval requires a valid Razorpay Account ID for receiving payments.');
           }
         } else {
-          Fluttertoast.showToast(msg: 'Admin data not found');
+          Fluttertoast.showToast(msg: 'Admin verification data not found');
         }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Error approving user: $e');
+      Fluttertoast.showToast(msg: 'Error approving theatre owner: $e');
     } finally {
       setState(() => isLoading = false);
     }
@@ -592,11 +592,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+        final userDoc = await _firestore.collection('movie_users').doc(currentUser.uid).get();
         final userData = userDoc.data();
 
         if (userData != null) {
-          await _firestore.collection('users').doc(userID).update({
+          await _firestore.collection('movie_users').doc(userID).update({
             'status': 'Disagree',
             'rejectionReason': reason,
             'verifiedby': {
@@ -606,14 +606,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             }
           });
 
-          Fluttertoast.showToast(msg: 'User rejected successfully!');
+          Fluttertoast.showToast(msg: 'Theatre owner application rejected!');
           Navigator.pop(context);
         } else {
-          Fluttertoast.showToast(msg: 'User data not found');
+          Fluttertoast.showToast(msg: 'Theatre owner data not found');
         }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Error rejecting user: $e');
+      Fluttertoast.showToast(msg: 'Error rejecting theatre owner: $e');
     } finally {
       setState(() => isLoading = false);
     }

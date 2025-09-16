@@ -153,7 +153,7 @@ class _SignupPageState extends State<SignupPage> {
       // --- Check for duplicate mobile number before creating user ---
       String enteredMobile = mobile.replaceAll(RegExp(r'\D'), '');
       print('Checking for duplicate mobile: ' + enteredMobile);
-      final usersSnapshot = await _firestore.collection('users').get();
+      final usersSnapshot = await _firestore.collection('movie_users').get();
       bool mobileExists = false;
       for (var doc in usersSnapshot.docs) {
         final data = doc.data();
@@ -178,7 +178,7 @@ class _SignupPageState extends State<SignupPage> {
 
       // --- Show Terms and Conditions Dialog ---
       print('Showing Terms and Conditions dialog');
-      final agreed = await _showTermsAndConditionsDialog(isTurfOwner: _userType == 'Turf Owner');
+      final agreed = await _showTermsAndConditionsDialog(isTurfOwner: _userType == 'Theatre Owner');
       print('User agreed to terms: ' + agreed.toString());
       if (!agreed) {
         setState(() => _loading = false);
@@ -296,7 +296,7 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   Future<void> _saveUserData(User user) async {
-    await _firestore.collection('users').doc(user.uid).set({
+    await _firestore.collection('movie_users').doc(user.uid).set({
       'name': _nameController.text.trim(),
       'email': _emailController.text.trim(),
       'mobile': _mobileController.text.trim(),
@@ -432,7 +432,7 @@ class _SignupPageState extends State<SignupPage> {
   Widget _buildUserTypeSelector() {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.teal.shade800),
+        border: Border.all(color: Colors.red.shade800),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -461,20 +461,20 @@ class _SignupPageState extends State<SignupPage> {
           ),
           Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _userType = 'Turf Owner'),
+              onTap: () => setState(() => _userType = 'Theatre Owner'),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: _userType == 'Turf Owner'
-                      ? Colors.teal.shade100
+                  color: _userType == 'Theatre Owner'
+                      ? Colors.red.shade100
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'Turf Owner',
+                  'Theatre Owner',
                   style: TextStyle(
-                    color: Colors.teal.shade900,
+                    color: Colors.red.shade900,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -532,9 +532,9 @@ class _SignupPageState extends State<SignupPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: Text(
-                        isTurfOwner ? _turfOwnerTerms : _customerTerms,
+                        isTurfOwner ? _theatreOwnerTerms : _customerTerms,
                         style: TextStyle(
-                          color: Colors.teal.shade900,
+                          color: Colors.red.shade900,
                           fontSize: 15,
                           height: 1.5,
                         ),
@@ -560,7 +560,7 @@ class _SignupPageState extends State<SignupPage> {
                   icon: Icon(Icons.check_circle, color: Colors.white),
                   label: Text('Agree', style: TextStyle(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: hasScrolledToEnd ? Colors.teal.shade700 : Colors.teal.shade200,
+                    backgroundColor: hasScrolledToEnd ? Colors.red.shade700 : Colors.red.shade200,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -574,52 +574,54 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   // Place these at the top of your _SignupPageState class:
-  final String _turfOwnerTerms = '''
-TERMS AND CONDITIONS FOR TURF OWNERS – BOOKTHEBIZ (INDIA)
+  final String _theatreOwnerTerms = '''
+TERMS AND CONDITIONS FOR THEATRE OWNERS – BOOKMYBIZ (INDIA)
 Effective Date: 01/04/2025
 Last Updated: 01/04/2025
 
 1. ELIGIBILITY
-To list your turf on BooktheBiz, you must:
+To list your theatre on BookMyBiz, you must:
 • Be at least 18 years of age.
-• Be the lawful owner of the property or have legal authority to manage and lease the turf.
+• Be the lawful owner of the property or have legal authority to manage and operate the theatre.
 • Provide accurate identity proof and property documentation when requested.
 
-2. TURF LISTING AND RESPONSIBILITIES
-By listing your turf, you agree to:
+2. THEATRE LISTING AND RESPONSIBILITIES
+By listing your theatre, you agree to:
 • Provide complete, accurate, and up-to-date information including:
-  - Turf name and location
-  - Pricing, availability, photos
-  - Features (lighting, seating, washrooms, etc.)
-• Ensure the turf is clean, well-maintained, and safe for use.
+  - Theatre name and location
+  - Screen details, seating capacity, photos
+  - Features (sound system, screen type, facilities, etc.)
+• Ensure the theatre is clean, well-maintained, and safe for use.
 • Keep your listing updated with accurate availability and pricing.
 • Comply with all applicable local and state laws, including zoning, fire safety, noise restrictions, and municipal approvals.
 
 3. BOOKING PROCESS AND CANCELLATIONS
-• All bookings must be processed exclusively through the BooktheBiz platform.
+• All bookings must be processed exclusively through the BookMyBiz platform.
 • You may choose between auto-approval or manual approval of bookings.
 • You must honour all confirmed bookings unless cancelled under genuine circumstances (e.g., weather, maintenance, natural disaster and so on).
-• Cancellations by turf owners must be made promptly and full refunds should be initiated immediately. Frequent cancellations may result in penalties or listing suspension.
+• Cancellations by theatre owners must be made promptly and full refunds should be initiated immediately. Frequent cancellations may result in penalties or listing suspension.
 
 4. PRICING, PAYMENTS & TAXES
-• You are free to set your own hourly or slot-based pricing.
-• BooktheBiz will deduct a platform service fee (percentage to be communicated separately) from every successful booking.
-• Payouts will be made via UPI, bank transfer, or other supported methods within 3–7 business days after the booking is completed.
+• You are free to set your own seat-based pricing for different seat categories (Regular, Premium, VIP).
+• Theatre owners receive 100% of the base ticket price they set.
+• BookMyBiz charges customers an additional 12% platform service fee on top of your ticket price.
+• Payouts will be made via Razorpay Route transfer within 24-48 hours after the booking is completed.
 • You are solely responsible for declaring and paying any applicable GST, income tax, or other government levies related to your earnings.
 
 5. CUSTOMER EXPERIENCE AND CONDUCT
 You agree to:
 • Provide a professional, respectful experience to all users.
 • Avoid discriminatory or inappropriate behavior.
-• Provide access to the turf as per the booked schedule and ensure that amenities listed are functional.
+• Ensure movie shows run as scheduled and that all listed amenities are functional.
+• Maintain proper seating arrangements and screen quality for optimal movie experience.
 
 6. LIABILITY AND INSURANCE
 • You are responsible for the safety, maintenance, and management of your premises.
-• BooktheBiz is not liable for any damage, injury, loss, theft, or third-party claims arising from incidents on your property.
-• It is advised to carry appropriate property and liability insurance to cover unforeseen events.
+• BookMyBiz is not liable for any damage, injury, loss, theft, or third-party claims arising from incidents on your property.
+• It is advised to carry appropriate property and liability insurance to cover unforeseen events during movie screenings.
 
 7. REVIEWS AND FEEDBACK
-• Customers may leave reviews after their booking. Turf owners cannot alter or remove reviews.
+• Customers may leave reviews after their movie experience. Theatre owners cannot alter or remove reviews.
 • Repeated negative reviews may result in account review or listing deactivation after internal verification.
 
 8. TERMINATION AND ACCOUNT SUSPENSION
@@ -628,94 +630,95 @@ Your account or listing may be suspended or terminated under the following circu
 • Multiple user complaints
 • Non-compliance with Indian laws or platform policies
 • Safety or hygiene violations
-• Repeated booking failures or misuse of the platform
+• Repeated show cancellations or misuse of the platform
+• Poor movie screening quality or technical issues
 
 9. INTELLECTUAL PROPERTY AND MARKETING USE
-• By listing your turf, you allow BooktheBiz to use your turf’s name, images, and description for platform promotion, advertisements, and social media marketing.
+• By listing your theatre, you allow BookMyBiz to use your theatre's name, images, and description for platform promotion, advertisements, and social media marketing.
 • You retain ownership of your content but grant us a non-exclusive license to use it for the duration of your listing.
 
 10. DISPUTE RESOLUTION
-• In case of disputes between turf owners and users, BooktheBiz will mediate to the best of its ability.
+• In case of disputes between theatre owners and movie-goers, BookMyBiz will mediate to the best of its ability.
 • Any legal disputes shall be subject to the jurisdiction of the courts of Salem, Tamil Nadu, India.
 
 11. CHANGES TO TERMS
-• BooktheBiz reserves the right to update or modify these Terms at any time. You will be notified through the app or email. Continued use of the platform constitutes acceptance of the revised Terms.
+• BookMyBiz reserves the right to update or modify these Terms at any time. You will be notified through the app or email. Continued use of the platform constitutes acceptance of the revised Terms.
 
 12. CONTACT INFORMATION
 For queries, assistance, or complaints, please contact us at:
-Email: btbowners@gmail.com
+Email: ownersbmb@gmail.com
 Phone: +91-8248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
 ''';
 
   final String _customerTerms = '''
-Terms and Conditions for Customers – BooktheBiz (India)
+Terms and Conditions for Customers – BookMyBiz (India)
 Effective Date: 01/04/2025
 Last Updated: 01/04/2025
-These Terms and Conditions ("Terms") govern the use of the BooktheBiz platform ("we", "us", "our") by customers ("you", "your", "user") who wish to book sports turfs and recreational spaces listed by turf owners. By using the BooktheBiz app or website, you agree to comply with these Terms.
+These Terms and Conditions ("Terms") govern the use of the BookMyBiz platform ("we", "us", "our") by customers ("you", "your", "user") who wish to book movie tickets at theatres listed by theatre owners. By using the BookMyBiz app or website, you agree to comply with these Terms.
 
 1. ACCOUNT REGISTRATION
-To book a turf on BooktheBiz, you must:
+To book movie tickets on BookMyBiz, you must:
 • Be at least 16 years of age. (Minors may participate under adult supervision.)
 • Provide accurate personal details (name, contact info, payment method).
 • Maintain the security of your account and not share your login credentials.
 
 2. BOOKING TERMS
-• All bookings must be made through the BooktheBiz platform.
-• You are responsible for reviewing turf details, availability, and pricing before confirming a booking.
+• All bookings must be made through the BookMyBiz platform.
+• You are responsible for reviewing movie details, show times, and pricing before confirming a booking.
 • Upon booking, you will receive a confirmation message via SMS, email, or in-app notification.
-• Some turfs may require prepayment or partial payment to confirm your slot.
+• All movie bookings require full payment to confirm your seats.
 
 3. PAYMENT POLICY
-• Prices are displayed per hour or per slot as set by the turf owner.
+• Prices are displayed per seat as set by the theatre owner.
 • Payments can be made via UPI, debit/credit card, wallet, or net banking.
 • A service fee may be added at the time of booking.
 • All payments are processed securely through our payment partners.
 
 4. CANCELLATION AND REFUND POLICY
-• Cancellations must be made within the cancellation window defined on the turf listing.
-• Refund eligibility depends on the turf owner’s policy (e.g., full refund if cancelled 8 hours in advance).
+• Cancellations must be made at least 3 hours before the show time.
+• Full refund will be processed if cancelled within the allowed time window.
 • No-shows or late arrivals are not eligible for refunds.
 • Refunds, if applicable, will be processed within 5–7 business days.
 
 5. USAGE CONDUCT
-By using a turf through BooktheBiz, you agree to:
-• Arrive on time and vacate the turf at the end of your booking.
-• Follow all on-site rules and regulations as set by the turf owner or staff.
+By booking movies through BookMyBiz, you agree to:
+• Arrive on time for your show and occupy only your booked seats.
+• Follow all on-site rules and regulations as set by the theatre owner or staff.
 • Maintain cleanliness and avoid damaging property or equipment.
-• Respect others’ bookings and not engage in disruptive behavior.
+• Respect other moviegoers and not engage in disruptive behavior.
 • Avoid illegal, hazardous, or inappropriate activities on the premises.
 
 6. LIABILITY
-• BooktheBiz is a booking platform and does not manage or operate the turfs.
-• Turf owners are solely responsible for the safety and maintenance of their facilities.
-• You acknowledge that any injuries, accidents, or losses incurred on-site are not the liability of BooktheBiz.
-• You participate at your own risk and are encouraged to wear proper sports gear.
+• BookMyBiz is a booking platform and does not manage or operate the theatres.
+• Theatre owners are solely responsible for the safety and maintenance of their facilities.
+• You acknowledge that any injuries, accidents, or losses incurred on-site are not the liability of BookMyBiz.
+• You participate at your own risk.
 
 7. REVIEWS AND RATINGS
-• You may leave honest feedback about your turf experience.
+• You may leave honest feedback about your movie experience.
 • Reviews should be respectful and fact-based.
-• BooktheBiz may remove reviews that contain offensive, defamatory, or misleading content.
+• BookMyBiz may remove reviews that contain offensive, defamatory, or misleading content.
 
 8. TERMINATION OF ACCOUNT
 Your account may be suspended or terminated for:
 • Repeated no-shows or cancellations
-• Misuse of turfs or abusive behavior
+• Misuse of theatres or abusive behavior
 • Attempting to bypass the platform to book directly
 • Providing false information or fraudulent activity
 
 9. PLATFORM USAGE
-• You agree not to misuse the BooktheBiz app or website (e.g., hacking, scraping, spamming).
-• All app content, listings, logos, and systems are protected intellectual property of BooktheBiz.
+• You agree not to misuse the BookMyBiz app or website (e.g., hacking, scraping, spamming).
+• All app content, listings, logos, and systems are protected intellectual property of BookMyBiz.
 
 10. CHANGES TO TERMS
-• BooktheBiz reserves the right to update these Terms at any time. Updated versions will be made available on the platform, and continued use constitutes your acceptance of the changes.
+• BookMyBiz reserves the right to update these Terms at any time. Updated versions will be made available on the platform, and continued use constitutes your acceptance of the changes.
 
 11. GOVERNING LAW
 • These Terms are governed by the laws of India. Any disputes shall be subject to the jurisdiction of the courts of Salem, Tamil Nadu, India.
 
 12. CONTACT US
 For support or complaints, reach out to:
-Email: btbcustomers@gmail.com
+Email: customersbmb@gmail.com
 Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
 ''';
 
@@ -740,7 +743,7 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
             Text(
               'Register new account',
               style: TextStyle(
-                color: Colors.teal.shade800,
+                color: Colors.red.shade800,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
               ),
@@ -779,11 +782,11 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
             const SizedBox(height: 20),
 
             CustomTextField(
-  iconData: Icons.lock,
-  hintText: "Enter Password",
-  controller: _passwordController,
-  isPassword: true,
-),
+              iconData: Icons.lock,
+              hintText: "Enter Password",
+              controller: _passwordController,
+              isPassword: true,
+            ),
 
             const SizedBox(height: 20),
 
@@ -805,15 +808,15 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.teal.shade50, Colors.teal.shade100, Colors.white],
+                      colors: [Colors.red.shade50, Colors.red.shade100, Colors.white],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.teal.shade200),
+                    border: Border.all(color: Colors.red.shade200),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.teal.shade100.withOpacity(0.18),
+                        color: Colors.red.shade100.withOpacity(0.18),
                         blurRadius: 16,
                         offset: Offset(0, 4),
                       ),
@@ -822,12 +825,12 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Icon(Icons.lock_clock, color: Colors.teal.shade400, size: 38),
+                      Icon(Icons.article_rounded, color: Colors.red.shade700, size: 28),
                       SizedBox(height: 10),
                       Text(
                         'Enter the OTP sent to +91 ${_mobileController.text.trim()}',
                         style: TextStyle(
-                          color: Colors.teal.shade700,
+                          color: Colors.red.shade800,
                           fontWeight: FontWeight.bold,
                           fontSize: 17,
                         ),
@@ -844,7 +847,7 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
                                   color: Colors.red.shade400,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
-                                  letterSpacing: 1.2,
+                              // timer text only
                                 ),
                                 textAlign: TextAlign.center,
                               )
@@ -864,17 +867,17 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.teal.shade100),
+                          border: Border.all(color: Colors.red.shade100),
                         ),
                         child: TextField(
                           controller: _otpController,
                           keyboardType: TextInputType.number,
-                          style: TextStyle(color: Colors.teal.shade900, letterSpacing: 2, fontWeight: FontWeight.bold),
-                          cursorColor: Colors.teal.shade900,
+                          style: TextStyle(color: Colors.red.shade900, letterSpacing: 2, fontWeight: FontWeight.bold),
+                          cursorColor: Colors.red.shade900,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock_clock, color: Colors.teal.shade800),
+                            prefixIcon: Icon(Icons.lock_clock, color: Colors.red.shade800),
                             hintText: 'OTP',
-                            hintStyle: TextStyle(color: Colors.teal.shade400),
+                            hintStyle: TextStyle(color: Colors.red.shade400),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                           ),
@@ -884,7 +887,7 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
                       ElevatedButton(
                         onPressed: _loading ? null : _verifyOtpAndLink,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal.shade600,
+                          backgroundColor: Colors.red.shade600,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -915,7 +918,7 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
                           icon: Icon(Icons.refresh, color: Colors.white),
                           label: Text('Retry OTP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal.shade400,
+                            backgroundColor: Colors.red.shade400,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -933,7 +936,7 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
               ElevatedButton(
                 onPressed: _loading ? null : _signup,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal.shade600,
+                  backgroundColor: Colors.red.shade600,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -967,7 +970,7 @@ Phone: +918248708300 (Mon-Fri 10.00 A.M - 6.00 P.M)
               child: Text(
                 'Already have an account? Login',
                 style: TextStyle(
-                  color: Colors.teal.shade600,
+                  color: Colors.red.shade600,
                   fontSize: 16,
                 ),
               ),
@@ -1003,17 +1006,17 @@ class CustomTextField extends StatelessWidget {
           )
         : Container(
             decoration: BoxDecoration(
-              color: Colors.teal.shade50,
+              color: Colors.red.shade50,
               borderRadius: BorderRadius.circular(10),
             ),
             child: TextField(
               controller: controller,
-              style: TextStyle(color: Colors.teal.shade900),
-              cursorColor: Colors.teal.shade900,
+              style: TextStyle(color: Colors.red.shade900),
+              cursorColor: Colors.red.shade900,
               decoration: InputDecoration(
-                prefixIcon: Icon(iconData, color: Colors.teal.shade800),
+                prefixIcon: Icon(iconData, color: Colors.red.shade800),
                 hintText: hintText,
-                hintStyle: TextStyle(color: Colors.teal.shade400),
+                hintStyle: TextStyle(color: Colors.red.shade400),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               ),
@@ -1044,16 +1047,16 @@ class _PasswordFieldState extends State<_PasswordField> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.teal.shade50,
+        color: Colors.red.shade50,
         borderRadius: BorderRadius.circular(10),
       ),
       child: TextField(
         controller: widget.controller,
         obscureText: _obscureText,
-        style: TextStyle(color: Colors.teal.shade900),
-        cursorColor: Colors.teal.shade900,
+        style: TextStyle(color: Colors.red.shade900),
+        cursorColor: Colors.red.shade900,
         decoration: InputDecoration(
-          prefixIcon: Icon(widget.iconData, color: Colors.teal.shade800),
+          prefixIcon: Icon(widget.iconData, color: Colors.red.shade800),
           suffixIcon: GestureDetector(
             onTap: () {
               setState(() {
@@ -1062,11 +1065,11 @@ class _PasswordFieldState extends State<_PasswordField> {
             },
             child: Icon(
               _obscureText ? Icons.visibility_off : Icons.visibility,
-              color: Colors.teal.shade800,
+              color: Colors.red.shade800,
             ),
           ),
           hintText: widget.hintText,
-          hintStyle: TextStyle(color: Colors.teal.shade400),
+          hintStyle: TextStyle(color: Colors.red.shade400),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         ),

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:odp/pages/movie_booking_page.dart';
 
 class BookingDetailsPage1 extends StatefulWidget {
   final Map<String, dynamic> bookingData;
@@ -17,10 +17,10 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Booking Details', style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)),
+        title: Text('Movie Booking Details', style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 4,
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.red.shade800,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -34,17 +34,18 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTurfImage(),
+                _buildMovieImage(),
                 SizedBox(height: 16),
-                _buildDetailRow('Turf Name', widget.bookingData['turfName'] ?? 'Unknown Turf'),
-                _buildDetailRow('Date', widget.bookingData['bookingDate'] ?? 'N/A'),
-                _buildDetailRow('Amount', '₹${_formatAmount(widget.bookingData['amount'])}'),
-                _buildDetailRow('Total Hours', '${widget.bookingData['totalHours'] ?? 0}'),
-                _buildDetailRow('Selected Ground', widget.bookingData['selectedGround'] ?? 'N/A'),
+                _buildDetailRow('Movie', widget.bookingData['movieTitle'] ?? 'Unknown Movie'),
+                _buildDetailRow('Theatre', widget.bookingData['theatreName'] ?? 'Unknown Theatre'),
+                _buildDetailRow('Show Date', widget.bookingData['showDate'] ?? 'N/A'),
+                _buildDetailRow('Show Time', widget.bookingData['showTime'] ?? 'N/A'),
+                _buildDetailRow('Amount', '₹${_formatAmount(widget.bookingData['totalAmount'])}'),
+                _buildDetailRow('Selected Seats', widget.bookingData['selectedSeats']?.join(', ') ?? 'N/A'),
                 _buildDetailRow('Name', widget.bookingData['userName'] ?? 'Unknown User'),
                 _buildDetailRow('Payment Method', widget.bookingData['paymentMethod'] ?? 'N/A'), // Add Payment Method
-                _buildBookedTimeSlots(context),
-              ],
+                _buildBookingStatus(context),
+              color: Colors.red.shade700,
             ),
           ),
         ),
@@ -52,10 +53,10 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
     );
   }
 
-  FutureBuilder<String> _buildTurfImage() {
-    String turfId = widget.bookingData['turfId'];
+  FutureBuilder<String> _buildMovieImage() {
+    String movieId = widget.bookingData['movieId'];
     return FutureBuilder<String>(
-      future: _fetchTurfImageUrl(turfId),
+      future: _fetchMovieImageUrl(movieId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -77,10 +78,11 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
           borderRadius: BorderRadius.circular(12),
           child: SizedBox(
             height: 250,
-            width: double.infinity,
-            child: Image.network(
-              snapshot.data!,
-              fit: BoxFit.cover,
+            builder: (context) => MovieBookingPage(
+              movieId: documentId,
+              theatreId: '',
+              showId: '',
+              showData: {},
             ),
           ),
         );
@@ -88,16 +90,16 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
     );
   }
 
-  Future<String> _fetchTurfImageUrl(String turfId) async {
-    DocumentSnapshot turfDoc = await FirebaseFirestore.instance
-        .collection('turfs')
-        .doc(turfId)
+  Future<String> _fetchMovieImageUrl(String movieId) async {
+    DocumentSnapshot movieDoc = await FirebaseFirestore.instance
+        .collection('movies')
+        .doc(movieId)
         .get();
 
-    if (turfDoc.exists) {
-      return turfDoc['imageUrl'] ?? '';
+    if (movieDoc.exists) {
+      return movieDoc['posterUrl'] ?? '';
     } else {
-      throw Exception('Turf not found');
+      throw Exception('Movie not found');
     }
   }
 
@@ -141,7 +143,7 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.teal,
+                color: Colors.red.shade700,
               ),
             ),
           ),
@@ -161,12 +163,12 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
     );
   }
 
-  Widget _buildBookedTimeSlots(BuildContext context) {
+  Widget _buildBookingStatus(BuildContext context) {
     final documentID = widget.bookingData['bookID'];
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('bookings')
+          .collection('movie_bookings')
           .doc(documentID)
           .snapshots(),
       builder: (context, snapshot) {
@@ -186,11 +188,24 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
 
         // Extract booking slots and status from the snapshot
         final bookingData = snapshot.data!.data() as Map<String, dynamic>;
-        final List<String> bookingSlots = List<String>.from(bookingData['bookingSlots'] ?? []);
-        final List<String> bookingStatus = List<String>.from(bookingData['bookingStatus'] ?? []);
+        final List<String> selectedSeats = List<String>.from(bookingData['selectedSeats'] ?? []);
+        final String status = bookingData['status'] ?? 'confirmed';
         final currentDateTime = DateTime.now();
-        final bookingDate = DateFormat('yyyy-MM-dd').parse(widget.bookingData['bookingDate']);
+        final showDate = widget.bookingData['showDate'];
+        final showTime = widget.bookingData['showTime'];
         bool isCancelling = false;
+        bool canCancel = false;
+
+        // Check if booking can be cancelled (3+ hours before show)
+        if (showDate != null && showTime != null) {
+          try {
+            final showDateTime = DateTime.parse('$showDate $showTime');
+            canCancel = showDateTime.isAfter(currentDateTime) && 
+                       showDateTime.difference(currentDateTime).inHours >= 3;
+          } catch (e) {
+            canCancel = false;
+          }
+        }
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -198,122 +213,98 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Booked Time Slots',
+                'Booking Information',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.teal,
+                  color: Colors.red.shade700,
                 ),
               ),
               SizedBox(height: 8),
-              Wrap(
-                spacing: 8.0,
-                runSpacing: 4.0,
+              Column(
                 children: [
-                  // Dynamic booking slots
-                  ...bookingSlots.map((slot) {
-                    // Normalize slot string to handle various formats
-                    final normalizedSlot = slot
-                        .replaceAll('-', ' - ')
-                        .replaceAll(RegExp(r'\s+'), ' ')
-                        .trim();
-
-                    final timeParts = normalizedSlot.split(' - ');
-                    DateTime? bookedStartTime;
-                    DateTime? bookedEndTime;
-                    bool canCancel = false;
-                    bool validFormat = false;
-
-                    if (timeParts.length == 2) {
-                      try {
-                        // Try parsing with and without minutes
-                        bookedStartTime = DateFormat('h:mm a').parseLoose(timeParts[0].trim());
-                      } catch (_) {
-                        try {
-                          bookedStartTime = DateFormat('h a').parseLoose(timeParts[0].trim());
-                        } catch (_) {}
-                      }
-                      try {
-                        bookedEndTime = DateFormat('h:mm a').parseLoose(timeParts[1].trim());
-                      } catch (_) {
-                        try {
-                          bookedEndTime = DateFormat('h a').parseLoose(timeParts[1].trim());
-                        } catch (_) {}
-                      }
-
-                      if (bookedStartTime != null && bookedEndTime != null) {
-                        final bookingDateTime = DateTime(
-                          bookingDate.year,
-                          bookingDate.month,
-                          bookingDate.day,
-                          bookedStartTime.hour,
-                          bookedStartTime.minute,
-                        );
-                        canCancel = bookingDateTime.isAfter(currentDateTime) &&
-                            bookingDateTime.difference(currentDateTime).inHours >= 8;
-                        validFormat = true;
-                      }
-                    }
-
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  // Selected Seats
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
                       children: [
-                        Expanded(
-                          child: Chip(
-                            label: Text(
-                              slot,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.teal,
+                        Icon(Icons.event_seat, color: Colors.red.shade600),
+                        SizedBox(width: 8),
+                        Text(
+                          'Seats: ${selectedSeats.join(', ')}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red.shade700,
                           ),
                         ),
-                        SizedBox(width: 16),
-                        if (validFormat)
-                          ElevatedButton(
-                            onPressed: canCancel && !isCancelling
-                                ? () async {
-                                    setState(() {
-                                      isCancelling = true;
-                                    });
-
-                                    await _cancelBooking(
-                                      documentID,
-                                      bookedStartTime!,
-                                      bookedEndTime!,
-                                    );
-
-                                    setState(() {
-                                      isCancelling = false;
-                                    });
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: canCancel ? Colors.red : Colors.grey,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              'Cancel Booking',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ),
                       ],
-                    );
-                  }),
-
-                  // Dynamic booking status
-                  ...bookingStatus.map((status) {
-                    return Chip(
-                      label: Text(
-                        status,
-                        style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  
+                  // Booking Status
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: status == 'confirmed' ? Colors.green.shade50 : Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          status == 'confirmed' ? Icons.check_circle : Icons.pending,
+                          color: status == 'confirmed' ? Colors.green : Colors.orange,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Status: ${status.toUpperCase()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: status == 'confirmed' ? Colors.green.shade800 : Colors.orange.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Cancel Button (if applicable)
+                  if (canCancel && status == 'confirmed') ...[
+                    SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: isCancelling ? null : () async {
+                          setState(() {
+                            isCancelling = true;
+                          });
+                          await _cancelMovieBooking(documentID);
+                          setState(() {
+                            isCancelling = false;
+                          });
+                        },
+                        icon: isCancelling 
+                            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : Icon(Icons.cancel, color: Colors.white),
+                        label: Text(
+                          isCancelling ? 'Cancelling...' : 'Cancel Booking',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.shade600,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                       ),
-                      backgroundColor: Colors.red,
-                    );
-                  }),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -324,88 +315,19 @@ class _BookingDetailsPage1State extends State<BookingDetailsPage1> {
   }
 }
 
-Future<void> _cancelBooking(String bookID, DateTime startTime, DateTime endTime) async {
+Future<void> _cancelMovieBooking(String bookingId) async {
   try {
-    final bookingRef = FirebaseFirestore.instance.collection('bookings');
-
-    // Query to get all documents from the bookings collection
-    final querySnapshot = await bookingRef.get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      for (var doc in querySnapshot.docs) {
-        if (doc.id == bookID) {
-          // Get the current bookingSlots
-          List<dynamic> bookingSlots = List.from(doc['bookingSlots']); // Ensure mutability
-          print('Current bookingSlots: $bookingSlots');
-
-          // Construct the slot to remove with non-zero-padded hours
-          String slotToRemove =
-              '${DateFormat('h:mm a').format(startTime)} - ${DateFormat('h:mm a').format(endTime)}';
-          print('Slot to remove: $slotToRemove');
-
-          // Helper to normalize slot strings for comparison
-          String normalizeSlot(String s) {
-            return s
-                .replaceAll(RegExp(r'[:\s]'), '') // remove colons and spaces
-                .replaceAll(RegExp(r'am', caseSensitive: false), 'AM')
-                .replaceAll(RegExp(r'pm', caseSensitive: false), 'PM')
-                .toUpperCase();
-          }
-
-          // Find the slot in bookingSlots that matches after normalization
-          int slotIndex = bookingSlots.indexWhere((slot) => normalizeSlot(slot.toString()) == normalizeSlot(slotToRemove));
-          if (slotIndex != -1) {
-            String matchedSlot = bookingSlots[slotIndex];
-            bookingSlots.removeAt(slotIndex);
-
-            // Update the document in Firebase
-            await bookingRef.doc(doc.id).update({
-              'bookingSlots': bookingSlots,
-              'bookingStatus': FieldValue.arrayUnion([matchedSlot]) // Add the slot directly
-            });
-            print('Updated bookingSlots and bookingStatus.');
-          } else {
-            print('Slot not found in bookingSlots.');
-          }
-
-          // Update the bookings sub-collection in the corresponding turf document
-          String turfId = doc['turfId'];
-          final turfRef = FirebaseFirestore.instance.collection('turfs').doc(turfId);
-          final bookingsSubCollectionRef = turfRef.collection('bookings');
-          final turfBookingDocs = await bookingsSubCollectionRef.get();
-
-          for (var subDoc in turfBookingDocs.docs) {
-            var bookingData = subDoc.data();
-            if (bookingData['selectedGround'] == doc['selectedGround'] &&
-                bookingData['bookingDate'] == doc['bookingDate'] &&
-                listEquals(bookingData['bookingSlots'], doc['bookingSlots']) &&
-                bookingData['userId'] == doc['userId']) {
-              List<dynamic> turfBookingSlots = List.from(bookingData['bookingSlots']);
-              if (turfBookingSlots.isNotEmpty) {
-                // Find the slot in turfBookingSlots that matches after normalization
-                int turfSlotIndex = turfBookingSlots.indexWhere((slot) => normalizeSlot(slot.toString()) == normalizeSlot(slotToRemove));
-                if (turfSlotIndex != -1) {
-                  String matchedTurfSlot = turfBookingSlots[turfSlotIndex];
-                  turfBookingSlots.removeAt(turfSlotIndex);
-
-                  // Update the sub-collection document
-                  await bookingsSubCollectionRef.doc(subDoc.id).update({
-                    'bookingSlots': turfBookingSlots,
-                    'bookingStatus': FieldValue.arrayUnion([matchedTurfSlot])
-                  });
-                  print('Updated turf bookingSlots and bookingStatus.');
-                } else {
-                  print('Slot not found in turfBookingSlots.');
-                }
-              }
-              break;
-            }
-          }
-          break;
-        }
-      }
-    }
+    // Update booking status to cancelled
+    await FirebaseFirestore.instance
+        .collection('movie_bookings')
+        .doc(bookingId)
+        .update({
+      'status': 'cancelled',
+      'cancelledAt': FieldValue.serverTimestamp(),
+    });
+    
+    print('Movie booking cancelled successfully: $bookingId');
   } catch (e) {
-    print('Error cancelling booking: $e');
+    print('Error cancelling movie booking: $e');
   }
 }
